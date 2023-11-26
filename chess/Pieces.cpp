@@ -76,4 +76,10 @@ void Pieces::setLetter(int letter)
 }
 
 
+void Pieces::movePawn(const std::string& destCoord)
+{
+
+} 
+
+
 

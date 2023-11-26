@@ -35,6 +35,7 @@ class Pieces
         void setPieceType(char pieceType);
         void setIndx(int indx);
         void setLetter(int letter);
+        void movePawn(const std::string& destCoord);
     private:
         char    _pieceType;
         int     _indx;
