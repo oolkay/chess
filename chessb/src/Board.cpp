@@ -41,7 +41,7 @@ Board::Board() {
     }
     for (int i = 2; i < 6; i++) {
         for (int j = 0; j < 8; j++) {
-            board[i][j] = Piece('.', -1, i, j, 0);
+            board[i][j] = Piece('.', -1, j, i, 0);
         }
     }
 
@@ -91,6 +91,12 @@ bool Board::validateMove(const std::string &input)
     // check if the piece is in the board
     if (isTherePiece(oldX, oldY) == false)
         return false;
+    // trying to eat same color
+    if (isTherePiece(newX, newY) == true)
+    {
+        if (board[newY][newX].getColor() == p.getColor())
+            return false;
+    }
     
     // if white's turn, check if the piece is white
     //todo: error msga1
@@ -107,10 +113,12 @@ bool Board::validateMove(const std::string &input)
     }
 
     /*CHECK WHICH PIECE*/
-    if (pieceType == 'P')
+    if (pieceType == 'P' || pieceType == 'p')
     {
-        if (validateWhitePawnMove(oldX, oldY, newX, newY))
-            moveWhitePawn(oldX, oldY, newX, newY);
+        if (validatePawnMove(oldX, oldY, newX, newY))
+        {
+            movePiece(oldX, oldY, newX, newY);
+        }
         else
             return false;
     }
@@ -118,57 +126,73 @@ bool Board::validateMove(const std::string &input)
     {
 
         if (validateRookMove(oldX, oldY, newX, newY))
-            moveRook(oldX, oldY, newX, newY);
+            movePiece(oldX, oldY, newX, newY);
         else
             return false;
     }
     else if (pieceType == 'B' || pieceType == 'b')
     {
         if (validateBishopMove(oldX, oldY, newX, newY))
-            moveBishop(oldX, oldY, newX, newY);
+            movePiece(oldX, oldY, newX, newY);
         else
             return false;
     }
     else if (pieceType == 'N' || pieceType == 'n')
     {
         if (validateKnightMove(oldX, oldY, newX, newY))
-            moveKnight(oldX, oldY, newX, newY);
+            movePiece(oldX, oldY, newX, newY);
+        else
+            return false;
+    }
+    else if (pieceType == 'Q' || pieceType == 'q')
+    {
+        if (validateBishopMove(oldX, oldY, newX, newY))
+            movePiece(oldX, oldY, newX, newY);
+        else if (validateRookMove(oldX, oldY, newX, newY))
+            movePiece(oldX, oldY, newX, newY);
         else
             return false;
     }
     return true;
 }
 
-bool Board::validateWhitePawnMove(int oldX, int oldY, int newX, int newY) const
+bool Board::validatePawnMove(int oldX, int oldY, int newX, int newY) const
 {
     const Piece& destCell = board[newY][newX];
-    std::cout << oldY << std::endl;
-    std::cout << oldX << std::endl;
-    std::cout << newY << std::endl;
-    std::cout << newX << std::endl;
-    if (oldX == newX && newY == oldY + 1)
-    {
-        if (destCell.getType() != '.')
-                return false;
-        return true;
+    const Piece& currentPiece = board[oldY][oldX];
+    const char type = destCell.getType();
+
+    if (currentPiece.getColor() == 0)
+    {    
+        if (oldX == newX && newY == oldY + 1 && type == '.') {
+            return true;
+        }
+        else if (oldX == newX && newY == oldY + 2 && oldY == 1 && type == '.') {
+            if (board[oldY + 1][oldX].getType() == '.')
+                return true;
+        }
+        else if (newY == oldY + 1 && newX == oldX + 1 && type != '.') {
+            return true;
+        }
+        else if (newY == oldY + 1 && newX == oldX - 1 && type != '.') {
+            return true;
+        }
     }
-    else if (oldX == newX && newY == oldY + 2 && oldY == 1)
+    else
     {
-        if (destCell.getType() != '.' || board[oldY+1][oldX].getType() != '.')
-            return false;
-        return true;
-    }
-    else if (newY == oldY + 1 && newX == oldX + 1)
-    {
-        if (destCell.getType() != '.' && destCell.getColor() == 0)
-            return false;
-        return true;
-    }
-    else if (newY == oldY + 1 && newX == oldX - 1)
-    {
-        if (destCell.getType() != '.' && destCell.getColor() == 0)
-            return false;
-        return true;
+        if (oldX == newX && newY == oldY - 1 && type == '.') {
+            return true;
+        }
+        else if (oldX == newX && newY == oldY - 2 && oldY == 6 && type == '.') {
+            if (board[oldY - 1][oldX].getType() == '.')
+                return true;
+        }
+        else if (newY == oldY - 1 && newX == oldX + 1 && type != '.') {
+            return true;
+        }
+        else if (newY == oldY - 1 && newX == oldX - 1 && type != '.') {
+            return true;
+        }
     }
     return false;
 }
@@ -180,44 +204,50 @@ bool Board::validateRookMove(int oldX, int oldY, int newX, int newY) const
     if (oldX == newX)
     {
         //moves up
-        if (oldY < newY)
+        if (oldY < newY) {
             for (int i = oldY + 1; i < newY; i++)
                 if (board[i][oldX].getType() != '.')
                     return false;
+        }
         //moves down
         else
+        {
             for (int i = oldY - 1; i > newY; i--)
                 if (board[i][oldX].getType() != '.')
                     return false;
-        if (destCell.getType() != '.')
-        {
-            if (destCell.getColor() == 0 && turn % 2 == 0)
-                return false;
-            else if (destCell.getColor() == 1 && turn % 2 == 1)
-                return false;
         }
+        // if (destCell.getType() != '.')
+        // {
+        //     if (destCell.getColor() == 0 && turn % 2 == 0)
+        //         return false;
+        //     else if (destCell.getColor() == 1 && turn % 2 == 1)
+        //         return false;
+        // }
         return true;
     }
     //moves horizontally
     else if (oldY == newY)
     {
         //moves right
-        if (oldX < newX)
+        if (oldX < newX) {
             for (int i = oldX + 1; i < newX; i++)
                 if (board[oldY][i].getType() != '.')
                     return false;
+        }
         //moves left
         else
+        {
             for (int i = oldX - 1; i > newX; i--)
                 if (board[oldY][i].getType() != '.')
                     return false;
-        if (destCell.getType() != '.')
-        {
-            if (destCell.getColor() == 0 && turn % 2 == 0)
-                return false;
-            else if (destCell.getColor() == 1 && turn % 2 == 1)
-                return false;
         }
+        // if (destCell.getType() != '.')
+        // {
+        //     if (destCell.getColor() == 0 && turn % 2 == 0)
+        //         return false;
+        //     else if (destCell.getColor() == 1 && turn % 2 == 1)
+        //         return false;
+        // }
         return true;
     }
     return true;
@@ -269,13 +299,13 @@ bool Board::validateBishopMove(int oldX, int oldY, int newX, int newY) const
         }
         if (j != newY || i != newX)
             return false;
-        if (destCell.getType() != '.')
-        {
-            if (destCell.getColor() == 0 && turn % 2 == 0)
-                return false;
-            else if (destCell.getColor() == 1 && turn % 2 == 1)
-                return false;
-        }
+        // if (destCell.getType() != '.')
+        // {
+        //     if (destCell.getColor() == 0 && turn % 2 == 0)
+        //         return false;
+        //     else if (destCell.getColor() == 1 && turn % 2 == 1)
+        //         return false;
+        // }
         return true;
     }
     return false;
@@ -289,108 +319,37 @@ bool Board::validateKnightMove(int oldX, int oldY, int newX, int newY) const
     //  |
     //  |    
     if (newX == oldX + 1 && newY == oldY + 2)
-    {
-        if (destCell.getType() != '.')
-        {
-            if (destCell.getColor() == 0 && turn % 2 == 0)
-                return false;
-            else if (destCell.getColor() == 1 && turn % 2 == 1)
-                return false;
-        }
         return true;
-    }
     //   ____
     //  |
     else if (newX == oldX + 2 && newY == oldY + 1)
-    {
-        if (destCell.getType() != '.')
-        {
-            if (destCell.getColor() == 0 && turn % 2 == 0)
-                return false;
-            else if (destCell.getColor() == 1 && turn % 2 == 1)
-                return false;
-        }
         return true;
-    }
     //   ____
     //      |
     else if (newX == oldX + 2 && newY == oldY - 1)
-    {
-        if (destCell.getType() != '.')
-        {
-            if (destCell.getColor() == 0 && turn % 2 == 0)
-                return false;
-            else if (destCell.getColor() == 1 && turn % 2 == 1)
-                return false; 
-        }
         return true;
-    }
     //   ___
     //      |
     //      |
     else if (newX == oldX + 1 && newY == oldY - 2)
-    {
-        if (destCell.getType() != '.')
-        {
-            if (destCell.getColor() == 0 && turn % 2 == 0)
-                return false;
-            else if (destCell.getColor() == 1 && turn % 2 == 1)
-                return false;
-        }
         return true;
-    }
     //      ___
     //      |
     //      |
     else if (newX == oldX - 1 && newY == oldY - 2)
-    {
-        if (destCell.getType() != '.')
-        {
-            if (destCell.getColor() == 0 && turn % 2 == 0)
-                return false;
-            else if (destCell.getColor() == 1 && turn % 2 == 1)
-                return false;
-        }
         return true;
-    }
     //      ____
     //      |
     else if (newX == oldX - 2 && newY == oldY - 1)
-    {
-        if (destCell.getType() != '.')
-        {
-            if (destCell.getColor() == 0 && turn % 2 == 0)
-                return false;
-            else if (destCell.getColor() == 1 && turn % 2 == 1)
-                return false;
-        }
-    }
+        return true;
     //     |____
     else if (newX == oldX - 2 && newY == oldY + 1)
-    {
-        if (destCell.getType() != '.')
-        {
-            if (destCell.getColor() == 0 && turn % 2 == 0)
-                return false;
-            else if (destCell.getColor() == 1 && turn % 2 == 1)
-                return false;
-        }
         return true;
-    }
     //  |
     //  |
     //  |____
     else if (newX == oldX - 1 && newY == oldY + 2)
-    {
-        if (destCell.getType() != '.')
-        {
-            if (destCell.getColor() == 0 && turn % 2 == 0)
-                return false;
-            else if (destCell.getColor() == 1 && turn % 2 == 1)
-                return false;
-        }
         return true;
-    }
     return false;
 }
 bool Board::isTherePiece(int x, int y) const
@@ -402,142 +361,309 @@ bool Board::isTherePiece(int x, int y) const
     return false;
 }
 
-int Board::moveWhitePawn(int oldX, int oldY, int newX, int newY)
+
+/*TODO TEK BİR MOVE FONKSİYONU MOVE PİECE*/
+int Board::movePiece(int oldX, int oldY, int newX, int newY)
 {
     Piece& oldCell = board[oldY][oldX];
     Piece& newCell = board[newY][newX];
-    if (oldX == newX && newY == oldY + 1)
-    {
-        newCell = oldCell;
-        oldCell = Piece('.', -1, oldX, oldY, 0);
-    }
-    else if (oldX == newX && newY == oldY + 2)
-    {
-        newCell = oldCell;
-        oldCell = Piece('.', -1, oldX, oldY, 0);
-    }
-    else if (newY == oldY + 1 && newX == oldX + 1)
-    {
-        newCell = oldCell;
-        oldCell = Piece('.', -1, oldX, oldY, 0);
-    }
-    else if (newY == oldY + 1 && newX == oldX - 1)
-    {
-        newCell = oldCell;
-        oldCell = Piece('.', -1, oldX, oldY, 0);
-    }
-    return 0;
+    newCell.setType(oldCell.getType());
+    newCell.setColor(oldCell.getColor());
+    newCell.setPoint(oldCell.getPoint());
+    oldCell.setType('.');
+    oldCell.setColor(-1);
+    oldCell.setPoint(0);
+    return (1);
 }
 
-int Board::moveRook(int oldX, int oldY, int newX, int newY)
+void Board::setTurn(int turn)
 {
-    Piece& oldCell = board[oldY][oldX];
-    Piece& newCell = board[newY][newX];
-    if (oldX == newX)
-    {
-        //moves up
-        if (oldY < newY)
-            for (int i = oldY + 1; i < newY; i++)
-                board[i][oldX] = Piece('.', -1, oldX, i, 0);
-        //moves down
-        else
-            for (int i = oldY - 1; i > newY; i--)
-                board[i][oldX] = Piece('.', -1, oldX, i, 0);
-        newCell = oldCell;
-        oldCell = Piece('.', -1, oldX, oldY, 0);
-    }
-    //moves horizontally
-    else if (oldY == newY)
-    {
-        //moves right
-        if (oldX < newX)
-            for (int i = oldX + 1; i < newX; i++)
-                board[oldY][i] = Piece('.', -1, i, oldY, 0);
-        //moves left
-        else
-            for (int i = oldX - 1; i > newX; i--)
-                board[oldY][i] = Piece('.', -1, i, oldY, 0);
-        newCell = oldCell;
-        oldCell = Piece('.', -1, oldX, oldY, 0);
-    }
-    return 0;
-
+    Board::turn = turn;
 }
 
-int Board::moveBishop(int oldX, int oldY, int newX, int newY)
+void Board::isPawnAttacks(const Piece &p)
 {
-    Piece& oldCell = board[oldY][oldX];
-    Piece& newCell = board[newY][newX];
-    //moves diagonally
-    if (oldX != newX && oldY != newY)
+    if (p.getColor() == 0)
     {
-        //moves up right
-        if (oldX < newX && oldY < newY)
-            for (int i = oldX + 1, j = oldY + 1; i < newX && j < newY; i++, j++)
-                board[j][i] = Piece('.', -1, i, j, 0);
-        //moves up left
-        else if (oldX > newX && oldY < newY)
-            for (int i = oldX - 1, j = oldY + 1; i > newX && j < newY; i--, j++)
-                board[j][i] = Piece('.', -1, i, j, 0);
-        //moves down right
-        else if (oldX < newX && oldY > newY)
-            for (int i = oldX + 1, j = oldY - 1; i < newX && j > newY; i++, j--)
-                board[j][i] = Piece('.', -1, i, j, 0);
-        //moves down left
-        else if (oldX > newX && oldY > newY)
-            for (int i = oldX - 1, j = oldY - 1; i > newX && j > newY; i--, j--)
-                board[j][i] = Piece('.', -1, i, j, 0);
-        newCell = oldCell;
-        oldCell = Piece('.', -1, oldX, oldY, 0);
+        if (p.getX() + 1 < 8 && p.getY() + 1 < 8) {
+            if (board[p.getY() + 1][p.getX() + 1].getColor() == 1)
+            {
+                board[p.getY() + 1][p.getX() + 1].setIsUnderAttack(true);
+            }
+        }
+        if (p.getX() - 1 >= 0 && p.getY() + 1 < 8) {
+            if (board[p.getY() + 1][p.getX() - 1].getColor() == 1)
+                board[p.getY() + 1][p.getX() - 1].setIsUnderAttack(true);
+        }
     }
-    return 0;
+    else if (p.getColor() == 1)
+    {
+        if (p.getX() + 1 < 8 && p.getY() - 1 >= 0) {
+            if (board[p.getY() - 1][p.getX() + 1].getColor() == 0)
+                board[p.getY() - 1][p.getX() + 1].setIsUnderAttack(true);
+        }
+        if (p.getX() - 1 >= 0 && p.getY() - 1 >= 0) {
+            if (board[p.getY() - 1][p.getX() - 1].getColor() == 0)
+            {
+                board[p.getY() - 1][p.getX() - 1].setIsUnderAttack(true);
+            }
+        }
+    }
 }
 
-int Board::moveKnight(int oldX, int oldY, int newX, int newY)
+void Board::isRookAttacks(const Piece &p)
 {
-    Piece& oldCell = board[oldY][oldX];
-    Piece& newCell = board[newY][newX];
-    if (newX == oldX + 1 && newY == oldY + 2)
+    int pieceColor = p.getColor();
+    int pieceX = p.getX();
+    int pieceY = p.getY();
+    //checks up
+    for (int i = pieceY + 1; i < 8; i++)
     {
-        newCell = oldCell;
-        oldCell = Piece('.', -1, oldX, oldY, 0);
+        if (board[i][pieceX].getType() != '.')
+        {
+            if (board[i][pieceX].getColor() != pieceColor)
+                board[i][pieceX].setIsUnderAttack(true);
+            if (board[i][pieceX].getColor() == pieceColor)
+                break;
+        }
     }
-    else if (newX == oldX + 2 && newY == oldY + 1)
+    //checks down
+    for (int i = pieceY - 1; i >= 0; i--)
     {
-        newCell = oldCell;
-        oldCell = Piece('.', -1, oldX, oldY, 0);
+        if (board[i][pieceX].getType() != '.')
+        {
+            if (board[i][pieceX].getColor() != pieceColor)
+                return board[i][pieceX].setIsUnderAttack(true);
+            if (board[i][pieceX].getColor() == pieceColor)
+                break;
+        }
     }
-    else if (newX == oldX + 2 && newY == oldY - 1)
+    //checks right
+    for (int i = pieceX + 1; i < 8; i++)
     {
-        newCell = oldCell;
-        oldCell = Piece('.', -1, oldX, oldY, 0);
+        if (board[pieceY][i].getType() != '.')
+        {
+            if (board[pieceY][i].getColor() != pieceColor)
+                board[pieceY][i].setIsUnderAttack(true);
+            if (board[pieceY][i].getColor() == pieceColor)
+                break;
+        }
     }
-    else if (newX == oldX + 1 && newY == oldY - 2)
+    //checks left
+    for (int i = pieceX - 1; i >= 0; i--)
     {
-        newCell = oldCell;
-        oldCell = Piece('.', -1, oldX, oldY, 0);
+        if (board[pieceY][i].getType() != '.')
+        {
+            if (board[pieceY][i].getColor() != pieceColor)
+                board[pieceY][i].setIsUnderAttack(true);
+            if (board[pieceY][i].getColor() == pieceColor)
+                break;
+        }
     }
-    else if (newX == oldX - 1 && newY == oldY - 2)
+}
+
+void Board::isBishopAttacks(const Piece &p)
+{
+    int pieceColor = p.getColor();
+    int pieceX = p.getX();
+    int pieceY = p.getY();
+    //checks up-right
+    for (int i = pieceX + 1, j = pieceY + 1; i < 8 && j < 8; i++, j++)
     {
-        newCell = oldCell;
-        oldCell = Piece('.', -1, oldX, oldY, 0);
+        if (board[j][i].getType() != '.')
+        {
+            if (board[j][i].getColor() != pieceColor)
+                board[j][i].setIsUnderAttack(true);
+            if (board[j][i].getColor() == pieceColor)
+                break;
+        }
     }
-    else if (newX == oldX - 2 && newY == oldY - 1)
+    //checks up-left
+    for (int i = pieceX - 1, j = pieceY + 1; i >= 0 && j < 8; i--, j++)
     {
-        newCell = oldCell;
-        oldCell = Piece('.', -1, oldX, oldY, 0);
+        if (board[j][i].getType() != '.')
+        {
+            if (board[j][i].getColor() != pieceColor)
+                board[j][i].setIsUnderAttack(true);
+            if (board[j][i].getColor() == pieceColor)
+                break;
+        }
     }
-    else if (newX == oldX - 2 && newY == oldY + 1)
+    //checks down-right
+    for (int i = pieceX + 1, j = pieceY - 1; i < 8 && j >= 0; i++, j--)
     {
-        newCell = oldCell;
-        oldCell = Piece('.', -1, oldX, oldY, 0);
+        if (board[j][i].getType() != '.')
+        {
+            if (board[j][i].getColor() != pieceColor)
+                board[j][i].setIsUnderAttack(true);
+            if (board[j][i].getColor() == pieceColor)
+                break;
+        }
     }
-    else if (newX == oldX - 1 && newY == oldY + 2)
+    //checks down-left
+    for (int i = pieceX - 1, j = pieceY - 1; i >= 0 && j >= 0; i--, j--)
     {
-        newCell = oldCell;
-        oldCell = Piece('.', -1, oldX, oldY, 0);
+        if (board[j][i].getType() != '.')
+        {
+            if (board[j][i].getColor() != pieceColor)
+                board[j][i].setIsUnderAttack(true);
+            if (board[j][i].getColor() == pieceColor)    
+                break;
+        }
     }
-    return 0;
+}
+
+void Board::isKnightAttacks(const Piece &p)
+{
+    int pieceColor = p.getColor();
+    int pieceX = p.getX();
+    int pieceY = p.getY();
+    if (p.getX() == 5 && p.getY() == 5)
+    {
+        std::cout <<"\n\n" << p << "\n\n";
+        std::cout <<"\n\n" << board[pieceY - 2][pieceX - 1]<< "\n\n";
+
+    }
+    //   ___
+    //  |
+    //  |    
+    if (pieceX + 1 < 8 && pieceY + 2 < 8) {
+        if (board[pieceY + 2][pieceX + 1].getColor() != pieceColor &&
+                 board[pieceY + 2][pieceX + 1].getType() != '.') {
+            board[pieceY + 2][pieceX + 1].setIsUnderAttack(true);
+        }
+    }
+    //   ____
+    //  |
+    else if (pieceX + 2 < 8 && pieceY + 1 < 8) {
+        if (board[pieceY + 1][pieceX + 2].getColor() != pieceColor &&
+                 board[pieceY + 1][pieceX + 2].getType() != '.') {
+            board[pieceY + 1][pieceX + 2].setIsUnderAttack(true);
+        }
+    }
+    //   ____
+    //      |
+    else if (pieceX + 2 < 8 && pieceY - 1 >= 0) {
+        if (board[pieceY - 1][pieceX + 2].getColor() != pieceColor && 
+                board[pieceY - 1][pieceX + 2].getType() != '.') {
+            board[pieceY - 1][pieceX + 2].setIsUnderAttack(true);
+        }
+    }
+    //   ___
+    //      |
+    //      |
+    else if (pieceX + 1 < 8 && pieceY - 2 >= 0) {
+        if (board[pieceY - 2][pieceX + 1].getColor() != pieceColor &&
+                 board[pieceY - 2][pieceX + 1].getType() != '.') {
+            board[pieceY - 2][pieceX + 1].setIsUnderAttack(true);
+        }
+    }
+    //      ___
+    //      |
+    //      |
+    else if (pieceX - 1 >= 0 && pieceY - 2 >= 0) {
+        if (board[pieceY - 2][pieceX - 1].getColor() != pieceColor &&
+                 board[pieceY - 2][pieceX - 1].getType() != '.') {
+            board[pieceY - 2][pieceX - 1].setIsUnderAttack(true);
+        }
+    }
+    //      ____
+    //      |
+    else if (pieceX - 2 >= 0 && pieceY - 1 >= 0) {
+        if (board[pieceY - 1][pieceX - 2].getColor() != pieceColor &&
+                 board[pieceY - 1][pieceX - 2].getType() != '.') {
+            board[pieceY - 1][pieceX - 2].setIsUnderAttack(true);
+        }
+    }
+    //     |____
+    else if (pieceX - 2 >= 0 && pieceY + 1 < 8) {
+        if (board[pieceY + 1][pieceX - 2].getColor() != pieceColor &&
+                 board[pieceY + 1][pieceX - 2].getType() != '.') {
+            board[pieceY + 1][pieceX - 2].setIsUnderAttack(true);
+        }
+    }
+    //  |
+    //  |
+    //  |____
+    else if (pieceX - 1 >= 0 && pieceY + 2 < 8) {
+        if (board[pieceY + 2][pieceX - 1].getColor() != pieceColor &&
+                 board[pieceY + 2][pieceX - 1].getType() != '.') {
+            board[pieceY + 2][pieceX - 1].setIsUnderAttack(true);
+        }
+    }
+}
+
+void Board::isQueenAttacks(const Piece &p)
+{
+    isBishopAttacks(p);
+    isRookAttacks(p);
+}
+
+void Board::updateUnderAttack()
+{
+    for (int i = 0; i < 64; i++)
+        board[i / 8][i % 8].setIsUnderAttack(false);
+    
+    for (int i = 0; i < 8; ++i)
+    {
+        for (int j = 0; j < 8; ++j)
+        {
+            Piece& p = board[i][j];
+            if ((p.getType() == 'P' || p.getType() == 'p'))
+            {
+                isPawnAttacks(p);
+            }
+            else if ((p.getType() == 'R' || p.getType() == 'r'))
+            {
+                isRookAttacks(p);
+            }
+            else if ((p.getType() == 'B' || p.getType() == 'b'))
+            {
+                isBishopAttacks(p);
+            }
+            else if ((p.getType() == 'N' || p.getType() == 'n'))
+            {
+                isKnightAttacks(p);
+            }
+            else if ((p.getType() == 'Q' || p.getType() == 'q'))
+            {
+                isQueenAttacks(p);
+            }
+            // else if ((p.getType() == 'K' || p.getType() == 'k'))
+            // {
+            //     Piece& pieceGetsAttacked = isKingAttacks(p);
+            //     if (!(pieceGetsAttacked == p))
+            //         pieceGetsAttacked.setIsUnderAttack(true);
+            // }
+        }
+    }
+}
+
+void Board::score()
+{
+    double whiteScore = 0;
+    double blackScore = 0;
+    double pieceScore = 0;
+    updateUnderAttack();//this function will update the isUnderAttack of each piece
+    for (int i = 0; i < 8; ++i)
+    {
+        for (int j = 0; j < 8; ++j)
+        {
+            Piece& p = board[i][j];
+            pieceScore = (double)p.getPoint();
+            if (p.getColor() == 0)
+            {
+                whiteScore += pieceScore - 0.5 * (double)p.getIsUnderAttack()*pieceScore;
+            }
+            else if (p.getColor() == 1)
+            {
+                blackScore += pieceScore - 0.5 * (double)p.getIsUnderAttack()*pieceScore;
+
+            }
+        }
+    }
+    std::cout << "White score: " << whiteScore << std::endl;
+    std::cout << "Black score: " << blackScore << std::endl;                   
 }
 
 std::ostream &operator<<(std::ostream &os, const Board &board)
