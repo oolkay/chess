@@ -386,24 +386,24 @@ void Board::isPawnAttacks(const Piece &p)
     if (p.getColor() == 0)
     {
         if (p.getX() + 1 < 8 && p.getY() + 1 < 8) {
-            if (board[p.getY() + 1][p.getX() + 1].getColor() == 1)
+            if (board[p.getY() + 1][p.getX() + 1].getColor() != 0)
             {
                 board[p.getY() + 1][p.getX() + 1].setIsUnderAttack(true);
             }
         }
         if (p.getX() - 1 >= 0 && p.getY() + 1 < 8) {
-            if (board[p.getY() + 1][p.getX() - 1].getColor() == 1)
+            if (board[p.getY() + 1][p.getX() - 1].getColor() != 0)
                 board[p.getY() + 1][p.getX() - 1].setIsUnderAttack(true);
         }
     }
     else if (p.getColor() == 1)
     {
         if (p.getX() + 1 < 8 && p.getY() - 1 >= 0) {
-            if (board[p.getY() - 1][p.getX() + 1].getColor() == 0)
+            if (board[p.getY() - 1][p.getX() + 1].getColor() != 1)
                 board[p.getY() - 1][p.getX() + 1].setIsUnderAttack(true);
         }
         if (p.getX() - 1 >= 0 && p.getY() - 1 >= 0) {
-            if (board[p.getY() - 1][p.getX() - 1].getColor() == 0)
+            if (board[p.getY() - 1][p.getX() - 1].getColor() != 1)
             {
                 board[p.getY() - 1][p.getX() - 1].setIsUnderAttack(true);
             }
@@ -416,50 +416,19 @@ void Board::isRookAttacks(const Piece &p)
     int pieceColor = p.getColor();
     int pieceX = p.getX();
     int pieceY = p.getY();
+    int i = pieceY + 1;
     //checks up
-    for (int i = pieceY + 1; i < 8; i++)
-    {
-        if (board[i][pieceX].getType() != '.')
-        {
-            if (board[i][pieceX].getColor() != pieceColor)
-                board[i][pieceX].setIsUnderAttack(true);
-            if (board[i][pieceX].getColor() == pieceColor)
-                break;
-        }
-    }
+    for (int i = pieceY + 1; i < 8 && board[i][pieceX].getColor() != pieceColor; i++)
+        board[i][pieceX].setIsUnderAttack(true);
     //checks down
-    for (int i = pieceY - 1; i >= 0; i--)
-    {
-        if (board[i][pieceX].getType() != '.')
-        {
-            if (board[i][pieceX].getColor() != pieceColor)
-                return board[i][pieceX].setIsUnderAttack(true);
-            if (board[i][pieceX].getColor() == pieceColor)
-                break;
-        }
-    }
+    for (int i = pieceY - 1; i >= 0 && board[i][pieceX].getColor() != pieceColor; i--)
+        return board[i][pieceX].setIsUnderAttack(true);
     //checks right
-    for (int i = pieceX + 1; i < 8; i++)
-    {
-        if (board[pieceY][i].getType() != '.')
-        {
-            if (board[pieceY][i].getColor() != pieceColor)
-                board[pieceY][i].setIsUnderAttack(true);
-            if (board[pieceY][i].getColor() == pieceColor)
-                break;
-        }
-    }
+    for (int i = pieceX + 1; i < 8 && board[pieceY][i].getColor() != pieceColor; i++)
+        board[pieceY][i].setIsUnderAttack(true);
     //checks left
-    for (int i = pieceX - 1; i >= 0; i--)
-    {
-        if (board[pieceY][i].getType() != '.')
-        {
-            if (board[pieceY][i].getColor() != pieceColor)
-                board[pieceY][i].setIsUnderAttack(true);
-            if (board[pieceY][i].getColor() == pieceColor)
-                break;
-        }
-    }
+    for (int i = pieceX - 1; i >= 0 && board[pieceY][i].getColor() != pieceColor; i--)
+        board[pieceY][i].setIsUnderAttack(true);
 }
 
 void Board::isBishopAttacks(const Piece &p)
@@ -468,48 +437,32 @@ void Board::isBishopAttacks(const Piece &p)
     int pieceX = p.getX();
     int pieceY = p.getY();
     //checks up-right
-    for (int i = pieceX + 1, j = pieceY + 1; i < 8 && j < 8; i++, j++)
+    for (int i = pieceX + 1, j = pieceY + 1; i < 8 && j < 8 && board[j][i].getColor() != pieceColor; i++, j++)
     {
+        board[j][i].setIsUnderAttack(true);
         if (board[j][i].getType() != '.')
-        {
-            if (board[j][i].getColor() != pieceColor)
-                board[j][i].setIsUnderAttack(true);
-            if (board[j][i].getColor() == pieceColor)
-                break;
-        }
+            break;
     }
     //checks up-left
-    for (int i = pieceX - 1, j = pieceY + 1; i >= 0 && j < 8; i--, j++)
+    for (int i = pieceX - 1, j = pieceY + 1; i >= 0 && j < 8 && board[j][i].getColor() != pieceColor; i--, j++)
     {
+        board[j][i].setIsUnderAttack(true);
         if (board[j][i].getType() != '.')
-        {
-            if (board[j][i].getColor() != pieceColor)
-                board[j][i].setIsUnderAttack(true);
-            if (board[j][i].getColor() == pieceColor)
-                break;
-        }
+            break;
     }
     //checks down-right
-    for (int i = pieceX + 1, j = pieceY - 1; i < 8 && j >= 0; i++, j--)
+    for (int i = pieceX + 1, j = pieceY - 1; i < 8 && j >= 0 && board[j][i].getColor() != pieceColor; i++, j--)
     {
+        board[j][i].setIsUnderAttack(true);
         if (board[j][i].getType() != '.')
-        {
-            if (board[j][i].getColor() != pieceColor)
-                board[j][i].setIsUnderAttack(true);
-            if (board[j][i].getColor() == pieceColor)
-                break;
-        }
+            break;
     }
     //checks down-left
-    for (int i = pieceX - 1, j = pieceY - 1; i >= 0 && j >= 0; i--, j--)
+    for (int i = pieceX - 1, j = pieceY - 1; i >= 0 && j >= 0 && board[j][i].getColor() != pieceColor; i--, j--)
     {
+        board[j][i].setIsUnderAttack(true);
         if (board[j][i].getType() != '.')
-        {
-            if (board[j][i].getColor() != pieceColor)
-                board[j][i].setIsUnderAttack(true);
-            if (board[j][i].getColor() == pieceColor)    
-                break;
-        }
+            break;
     }
 }
 
@@ -518,76 +471,62 @@ void Board::isKnightAttacks(const Piece &p)
     int pieceColor = p.getColor();
     int pieceX = p.getX();
     int pieceY = p.getY();
-    if (p.getX() == 5 && p.getY() == 5)
-    {
-        std::cout <<"\n\n" << p << "\n\n";
-        std::cout <<"\n\n" << board[pieceY - 2][pieceX - 1]<< "\n\n";
-
-    }
     //   ___
     //  |
     //  |    
     if (pieceX + 1 < 8 && pieceY + 2 < 8) {
-        if (board[pieceY + 2][pieceX + 1].getColor() != pieceColor &&
-                 board[pieceY + 2][pieceX + 1].getType() != '.') {
+        if (board[pieceY + 2][pieceX + 1].getColor() != pieceColor) {
             board[pieceY + 2][pieceX + 1].setIsUnderAttack(true);
         }
     }
     //   ____
     //  |
-    else if (pieceX + 2 < 8 && pieceY + 1 < 8) {
-        if (board[pieceY + 1][pieceX + 2].getColor() != pieceColor &&
-                 board[pieceY + 1][pieceX + 2].getType() != '.') {
+    if (pieceX + 2 < 8 && pieceY + 1 < 8) {
+        if (board[pieceY + 1][pieceX + 2].getColor() != pieceColor) {
             board[pieceY + 1][pieceX + 2].setIsUnderAttack(true);
         }
     }
     //   ____
     //      |
-    else if (pieceX + 2 < 8 && pieceY - 1 >= 0) {
-        if (board[pieceY - 1][pieceX + 2].getColor() != pieceColor && 
-                board[pieceY - 1][pieceX + 2].getType() != '.') {
+    if (pieceX + 2 < 8 && pieceY - 1 >= 0) {
+        if (board[pieceY - 1][pieceX + 2].getColor() != pieceColor) { 
             board[pieceY - 1][pieceX + 2].setIsUnderAttack(true);
         }
     }
     //   ___
     //      |
     //      |
-    else if (pieceX + 1 < 8 && pieceY - 2 >= 0) {
-        if (board[pieceY - 2][pieceX + 1].getColor() != pieceColor &&
-                 board[pieceY - 2][pieceX + 1].getType() != '.') {
+    if (pieceX + 1 < 8 && pieceY - 2 >= 0) {
+        if (board[pieceY - 2][pieceX + 1].getColor() != pieceColor) {
             board[pieceY - 2][pieceX + 1].setIsUnderAttack(true);
         }
     }
     //      ___
     //      |
     //      |
-    else if (pieceX - 1 >= 0 && pieceY - 2 >= 0) {
-        if (board[pieceY - 2][pieceX - 1].getColor() != pieceColor &&
-                 board[pieceY - 2][pieceX - 1].getType() != '.') {
+    if (pieceX - 1 >= 0 && pieceY - 2 >= 0) {
+        if (board[pieceY - 2][pieceX - 1].getColor() != pieceColor) {
             board[pieceY - 2][pieceX - 1].setIsUnderAttack(true);
         }
     }
     //      ____
     //      |
-    else if (pieceX - 2 >= 0 && pieceY - 1 >= 0) {
-        if (board[pieceY - 1][pieceX - 2].getColor() != pieceColor &&
-                 board[pieceY - 1][pieceX - 2].getType() != '.') {
+    if (pieceX - 2 >= 0 && pieceY - 1 >= 0) {
+        if (board[pieceY - 1][pieceX - 2].getColor() != pieceColor) {
             board[pieceY - 1][pieceX - 2].setIsUnderAttack(true);
         }
     }
     //     |____
-    else if (pieceX - 2 >= 0 && pieceY + 1 < 8) {
-        if (board[pieceY + 1][pieceX - 2].getColor() != pieceColor &&
-                 board[pieceY + 1][pieceX - 2].getType() != '.') {
+    if (pieceX - 2 >= 0 && pieceY + 1 < 8) {
+        if (board[pieceY + 1][pieceX - 2].getColor() != pieceColor) {
             board[pieceY + 1][pieceX - 2].setIsUnderAttack(true);
         }
     }
     //  |
     //  |
     //  |____
-    else if (pieceX - 1 >= 0 && pieceY + 2 < 8) {
-        if (board[pieceY + 2][pieceX - 1].getColor() != pieceColor &&
-                 board[pieceY + 2][pieceX - 1].getType() != '.') {
+    if (pieceX - 1 >= 0 && pieceY + 2 < 8) {
+        if (board[pieceY + 2][pieceX - 1].getColor() != pieceColor) {
             board[pieceY + 2][pieceX - 1].setIsUnderAttack(true);
         }
     }
@@ -603,7 +542,6 @@ void Board::updateUnderAttack()
 {
     for (int i = 0; i < 64; i++)
         board[i / 8][i % 8].setIsUnderAttack(false);
-    
     for (int i = 0; i < 8; ++i)
     {
         for (int j = 0; j < 8; ++j)
@@ -658,7 +596,6 @@ void Board::score()
             else if (p.getColor() == 1)
             {
                 blackScore += pieceScore - 0.5 * (double)p.getIsUnderAttack()*pieceScore;
-
             }
         }
     }

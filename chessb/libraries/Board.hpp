@@ -20,11 +20,7 @@ class Board{
         bool validateKnightMove(int oldX, int oldY, int newX, int newY) const;
 
         bool isTherePiece(int x, int y) const;
-        int move(const std::string& input);
         int movePiece(int oldX, int oldY, int newX, int newY);
-        int moveRook(int oldX, int oldY, int newX, int newY);
-        int moveBishop(int oldX, int oldY, int newX, int newY);
-        int moveKnight(int oldX, int oldY, int newX, int newY);
         inline static int getTurn() { return turn;};
         static void setTurn(int turn);
         void isPawnAttacks(const Piece& p) ;
