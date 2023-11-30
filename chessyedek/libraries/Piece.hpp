@@ -19,28 +19,19 @@ class Piece {
         int getY() const;
         int getPoint() const;
         int getColor() const;
-        void insertPiecesAttack(const Piece& p);
         void setType(char type);
         void setCoords(int x, int y);
         void setCoords(std::string coords);
-        void setIsUnderAttackByWhite(bool isUnderAttackByWhite);
-        void setIsUnderAttackByBlack(bool isUnderAttackByBlack);
+        void setIsUnderAttack(bool isUnderAttack);
         void setColor(int color);
         void setPoint(int point);
-        inline bool getIsUnderAttackByWhite() const { return this->isUnderAttackByWhite;};
-        inline bool getIsUnderAttackByBlack() const { return this->isUnderAttackByBlack;};
-        inline Piece getPieceAttacks(int i) const { return this->piecesAttacks[i];};
-        inline int getPieceAttacksSize() const { return this->piecesAttacks.size();};
-        inline void clearPiecesAttacks() { this->piecesAttacks.clear();};
+        inline bool getIsUnderAttack() const { return this->isUnderAttack;};
     private:
         char type;
         int x;
         int y;
         int point;
-        bool isUnderAttackByWhite;
-        bool isUnderAttackByBlack;
-        std::vector<std::string> possibleMoves;
-        std::vector<Piece> piecesAttacks;
+        bool isUnderAttack;
         int color; // 0 for black, 1 for white, -1 for empty
 };
 

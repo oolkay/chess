@@ -6,9 +6,6 @@ Board::Board() {
     std::vector< std::vector<Piece> > board(8, std::vector<Piece>(8));
     std::vector<Piece> whiteP;
     std::vector<Piece> blackP;
-
-
-
     whiteP.push_back(Piece('R', 0, 0, 0, 5));
     whiteP.push_back(Piece('N', 0, 1, 0, 3));
     whiteP.push_back(Piece('B', 0, 2, 0, 3));
@@ -44,7 +41,6 @@ Board::Board() {
             board[i][j] = Piece('.', -1, j, i, 0);
         }
     }
-
     this->board = board;
 }
 
@@ -97,7 +93,6 @@ bool Board::validateMove(const std::string &input)
         if (board[newY][newX].getColor() == p.getColor())
             return false;
     }
-    
     // if white's turn, check if the piece is white
     //todo: error msga1
     if (turn % 2 == 0)
@@ -116,9 +111,7 @@ bool Board::validateMove(const std::string &input)
     if (pieceType == 'P' || pieceType == 'p')
     {
         if (validatePawnMove(oldX, oldY, newX, newY))
-        {
-            movePiece(oldX, oldY, newX, newY);
-        }
+            return true;
         else
             return false;
     }
@@ -126,30 +119,37 @@ bool Board::validateMove(const std::string &input)
     {
 
         if (validateRookMove(oldX, oldY, newX, newY))
-            movePiece(oldX, oldY, newX, newY);
+            return true;
         else
             return false;
     }
     else if (pieceType == 'B' || pieceType == 'b')
     {
         if (validateBishopMove(oldX, oldY, newX, newY))
-            movePiece(oldX, oldY, newX, newY);
+            return true;
         else
             return false;
     }
     else if (pieceType == 'N' || pieceType == 'n')
     {
         if (validateKnightMove(oldX, oldY, newX, newY))
-            movePiece(oldX, oldY, newX, newY);
+            return true;
         else
             return false;
     }
     else if (pieceType == 'Q' || pieceType == 'q')
     {
         if (validateBishopMove(oldX, oldY, newX, newY))
-            movePiece(oldX, oldY, newX, newY);
+            return true;
         else if (validateRookMove(oldX, oldY, newX, newY))
-            movePiece(oldX, oldY, newX, newY);
+            return true;
+        else
+            return false;
+    }
+    else if (pieceType == 'K' || pieceType == 'k')
+    {
+        if (validateKingMove(oldX, oldY, newX, newY))
+            return true;
         else
             return false;
     }
@@ -352,6 +352,162 @@ bool Board::validateKnightMove(int oldX, int oldY, int newX, int newY) const
         return true;
     return false;
 }
+
+bool Board::validateKingMove(int oldX, int oldY, int newX, int newY) const
+{
+    const Piece& destCell = board[newY][newX];
+    const int pieceColor = board[oldY][oldX].getColor();
+    bool isUnderAttack;
+    if (pieceColor == 0)
+        isUnderAttack = destCell.getIsUnderAttackByBlack();
+    else
+        isUnderAttack = destCell.getIsUnderAttackByWhite();
+    if (newX == oldX + 1 && newY == oldY && isUnderAttack == false) return true;
+    else if (newX == oldX + 1 && newY == oldY + 1 && isUnderAttack == false) return true;
+    else if (newX == oldX && newY == oldY + 1 && isUnderAttack == false) return true;
+    else if (newX == oldX - 1 && newY == oldY + 1 && isUnderAttack == false) return true;
+    else if (newX == oldX - 1 && newY == oldY && isUnderAttack == false) return true;
+    else if (newX == oldX - 1 && newY == oldY - 1 && isUnderAttack == false) return true;
+    else if (newX == oldX && newY == oldY - 1 && isUnderAttack == false) return true;
+    else if (newX == oldX + 1 && newY == oldY - 1 && isUnderAttack == false) return true;
+    std::cout << "It is check, you need to protect your king!\n";
+    return false;
+}
+
+bool Board::isCheckmate(int color)
+{
+    Piece& king = getKing(color);
+    int x = king.getX();
+    int y = king.getY();
+    int flag = 1;
+    if (color == 0)
+        if (king.getIsUnderAttackByBlack() == false)
+            return false;
+    if (color == 1)
+        if (king.getIsUnderAttackByWhite() == false)
+            return false;
+    if (color == 0) //checks can white king moves any direction
+    {
+        if (x+1 < 8 && board[y][x+1].getIsUnderAttackByBlack() == false && board[y][x+1].getColor() != 0) return false;
+        if (x+1 < 8 && y+1 < 8 && board[y+1][x+1].getIsUnderAttackByBlack() == false && board[y+1][x+1].getColor() != 0) return false;
+        if (y+1 < 8 && board[y+1][x].getIsUnderAttackByBlack() == false && board[y+1][x].getColor() != 0) return false;
+        if (x-1 >= 0 && y+1 < 8 && board[y+1][x-1].getIsUnderAttackByBlack() == false && board[y+1][x-1].getColor() != 0) return false;
+        if (x-1 >= 0 && board[y][x-1].getIsUnderAttackByBlack() == false && board[y][x-1].getColor() != 0) return false;
+        if (x-1 >= 0 && y-1 >= 0 && board[y-1][x-1].getIsUnderAttackByBlack() == false && board[y-1][x-1].getColor() != 0) return false;
+        if (y-1 >= 0 && board[y-1][x].getIsUnderAttackByBlack() == false && board[y-1][x].getColor() != 0) return false;
+        if (x+1 < 8 && y-1 >= 0 && board[y-1][x+1].getIsUnderAttackByBlack() == false && board[y-1][x+1].getColor() != 0) return false;
+    }
+    else //checks can black king moves any direction
+    {
+        if (x+1 < 8 && board[y][x+1].getIsUnderAttackByWhite() == false) return false;
+        if (x+1 < 8 && y+1 < 8 && board[y+1][x+1].getIsUnderAttackByWhite() == false) return false;
+        if (y+1 < 8 && board[y+1][x].getIsUnderAttackByWhite() == false) return false;
+        if (x-1 >= 0 && y+1 < 8 && board[y+1][x-1].getIsUnderAttackByWhite() == false) return false;
+        if (x-1 >= 0 && board[y][x-1].getIsUnderAttackByWhite() == false) return false;
+        if (x-1 >= 0 && y-1 >= 0 && board[y-1][x-1].getIsUnderAttackByWhite() == false) return false;
+        if (y-1 >= 0 && board[y-1][x].getIsUnderAttackByWhite() == false) return false;
+        if (x+1 < 8 && y-1 >= 0 && board[y-1][x+1].getIsUnderAttackByWhite() == false) return false;
+    }
+    //checks can any piece protect the king by eating the piece that attacks
+    int size = king.getPieceAttacksSize();
+    for (int i = 0; i < size; ++i)
+    {
+        const Piece& attackPiece = king.getPieceAttacks(i);
+        if (color == 0)
+            if (attackPiece.getIsUnderAttackByWhite() == false)
+                flag = 0;
+        else
+            if (attackPiece.getIsUnderAttackByBlack() == false)
+                flag = 0;
+    }
+    if (flag == 1)
+        return false;
+    
+    //checks can any piece protect the king by blocking the piece that attacks
+    flag = 1;
+    for (int i = 0; i < size; ++i)
+    {
+        const Piece& attackPiece = king.getPieceAttacks(i);
+        switch (attackPiece.getType())
+        {
+            case 'R':
+            case 'r':
+                    if (saveTheKingFromRook(king, attackPiece) == false)
+                        flag = 0;
+                break;
+            case 'B':
+            case 'b':
+                    if (saveTheKingFromBishop(king, attackPiece) == false)
+                        flag = 0;
+                break;
+            case 'Q':
+            case 'q':
+                    if (attackPiece.getX() == king.getX() || attackPiece.getY() == king.getY())
+                        if (saveTheKingFromRook(king, attackPiece) == false)
+                            flag = 0;
+                    else
+                        if (saveTheKingFromBishop(king, attackPiece) == false)
+                            flag = 0;
+                break;
+            default:
+                break;
+        }
+        if (flag == 0)
+            return false;
+    }
+    return true;
+}
+
+bool Board::isWhiteCheck()
+{
+    Piece& king = getKing(0);
+    if (king.getIsUnderAttackByBlack() == true)
+        return true;
+    return false;
+}
+
+bool Board::isCheck(int color)
+{
+    const Piece& king = getKing(color);
+    if (color == 0) {
+        if (king.getIsUnderAttackByBlack() == true)
+            return true;
+        return false;
+    }
+    else {
+        if (king.getIsUnderAttackByWhite() == true)
+            return true;
+        return false;
+    }
+}
+
+bool Board::isBlackCheck()
+{
+    Piece& king = getKing(0);
+    if (king.getIsUnderAttackByBlack() == true)
+        return true;
+    return false;
+}
+
+Piece &Board::getKing(int color)
+{
+    char pieceType;
+    for (int i = 0; i < 8; i++)
+    {
+        for (int j = 0; j < 8 ; j++)
+        {
+            pieceType = board[i][j].getType();
+            if ((pieceType == 'K' || pieceType == 'k') && board[i][j].getColor() == color)
+                return board[i][j];
+        }
+    }
+}
+
+int Board::check()
+{
+    return 0;
+}
+
 bool Board::isTherePiece(int x, int y) const
 {
     if (board[y][x].getType() != '.')
@@ -383,29 +539,33 @@ void Board::setTurn(int turn)
 
 void Board::isPawnAttacks(const Piece &p)
 {
-    if (p.getColor() == 0)
-    {
-        if (p.getX() + 1 < 8 && p.getY() + 1 < 8) {
-            if (board[p.getY() + 1][p.getX() + 1].getColor() != 0)
-            {
-                board[p.getY() + 1][p.getX() + 1].setIsUnderAttack(true);
+    int x = p.getX();
+    int y = p.getY();
+    if (p.getColor() == 0) {
+        if (x + 1 < 8 && y + 1 < 8) {
+            if (board[y + 1][x + 1].getColor() != 0) {
+                board[y + 1][x + 1].setIsUnderAttackByWhite(true);
+                board[y + 1][x + 1].insertPiecesAttack(p);
             }
         }
-        if (p.getX() - 1 >= 0 && p.getY() + 1 < 8) {
-            if (board[p.getY() + 1][p.getX() - 1].getColor() != 0)
-                board[p.getY() + 1][p.getX() - 1].setIsUnderAttack(true);
+        if (x - 1 >= 0 && y + 1 < 8) {
+            if (board[y + 1][x - 1].getColor() != 0) {
+                board[y + 1][x - 1].setIsUnderAttackByWhite(true);
+                board[y + 1][x - 1].insertPiecesAttack(p);
+            }
         }
     }
-    else if (p.getColor() == 1)
-    {
-        if (p.getX() + 1 < 8 && p.getY() - 1 >= 0) {
-            if (board[p.getY() - 1][p.getX() + 1].getColor() != 1)
-                board[p.getY() - 1][p.getX() + 1].setIsUnderAttack(true);
+    else if (p.getColor() == 1) {
+        if (x + 1 < 8 && y - 1 >= 0) {
+            if (board[y - 1][x + 1].getColor() != 1) {
+                board[y - 1][x + 1].setIsUnderAttackByBlack(true);
+                board[y - 1][x + 1].insertPiecesAttack(p);
+            }
         }
-        if (p.getX() - 1 >= 0 && p.getY() - 1 >= 0) {
-            if (board[p.getY() - 1][p.getX() - 1].getColor() != 1)
-            {
-                board[p.getY() - 1][p.getX() - 1].setIsUnderAttack(true);
+        if (x - 1 >= 0 && y - 1 >= 0) {
+            if (board[y - 1][x - 1].getColor() != 1) {
+                board[y - 1][x - 1].setIsUnderAttackByBlack(true);
+                board[y - 1][x - 1].insertPiecesAttack(p);
             }
         }
     }
@@ -419,16 +579,52 @@ void Board::isRookAttacks(const Piece &p)
     int i = pieceY + 1;
     //checks up
     for (int i = pieceY + 1; i < 8 && board[i][pieceX].getColor() != pieceColor; i++)
-        board[i][pieceX].setIsUnderAttack(true);
+    {
+        if (pieceColor == 0)
+            board[i][pieceX].setIsUnderAttackByWhite(true);
+        else if (pieceColor == 1)
+            board[i][pieceX].setIsUnderAttackByBlack(true);
+
+        board[i][pieceX].insertPiecesAttack(p);
+        if (board[i][pieceX].getType() != '.')
+            break;
+    }
     //checks down
     for (int i = pieceY - 1; i >= 0 && board[i][pieceX].getColor() != pieceColor; i--)
-        return board[i][pieceX].setIsUnderAttack(true);
+    {
+        if (pieceColor == 0) 
+            board[i][pieceX].setIsUnderAttackByWhite(true);
+        else if (pieceColor == 1) 
+            board[i][pieceX].setIsUnderAttackByBlack(true);
+
+        board[i][pieceX].insertPiecesAttack(p);
+        if (board[i][pieceX].getType() != '.')
+            break;
+    }
     //checks right
     for (int i = pieceX + 1; i < 8 && board[pieceY][i].getColor() != pieceColor; i++)
-        board[pieceY][i].setIsUnderAttack(true);
+    {
+        if (pieceColor == 0)
+            board[pieceY][i].setIsUnderAttackByWhite(true);
+        else if (pieceColor == 1)
+            board[pieceY][i].setIsUnderAttackByBlack(true);
+
+        board[pieceY][i].insertPiecesAttack(p);
+        if (board[pieceY][i].getType() != '.')
+            break;
+    }
     //checks left
     for (int i = pieceX - 1; i >= 0 && board[pieceY][i].getColor() != pieceColor; i--)
-        board[pieceY][i].setIsUnderAttack(true);
+    {
+        if (pieceColor == 0)
+            board[pieceY][i].setIsUnderAttackByWhite(true);
+        else if (pieceColor == 1)
+            board[pieceY][i].setIsUnderAttackByBlack(true);
+
+        board[pieceY][i].insertPiecesAttack(p);
+        if (board[pieceY][i].getType() != '.')
+            break;
+    }
 }
 
 void Board::isBishopAttacks(const Piece &p)
@@ -439,28 +635,48 @@ void Board::isBishopAttacks(const Piece &p)
     //checks up-right
     for (int i = pieceX + 1, j = pieceY + 1; i < 8 && j < 8 && board[j][i].getColor() != pieceColor; i++, j++)
     {
-        board[j][i].setIsUnderAttack(true);
+        if (pieceColor == 0)
+            board[j][i].setIsUnderAttackByWhite(true);
+        else if (pieceColor == 1)
+            board[j][i].setIsUnderAttackByBlack(true);
+
+        board[j][i].insertPiecesAttack(p);
         if (board[j][i].getType() != '.')
             break;
     }
     //checks up-left
     for (int i = pieceX - 1, j = pieceY + 1; i >= 0 && j < 8 && board[j][i].getColor() != pieceColor; i--, j++)
     {
-        board[j][i].setIsUnderAttack(true);
+        if (pieceColor == 0)
+            board[j][i].setIsUnderAttackByWhite(true);
+        else if (pieceColor == 1)
+            board[j][i].setIsUnderAttackByBlack(true);
+
+        board[j][i].insertPiecesAttack(p);
         if (board[j][i].getType() != '.')
             break;
     }
     //checks down-right
     for (int i = pieceX + 1, j = pieceY - 1; i < 8 && j >= 0 && board[j][i].getColor() != pieceColor; i++, j--)
     {
-        board[j][i].setIsUnderAttack(true);
+        if (pieceColor == 0)
+            board[j][i].setIsUnderAttackByWhite(true);
+        else if (pieceColor == 1)
+            board[j][i].setIsUnderAttackByBlack(true);
+        
+        board[j][i].insertPiecesAttack(p);
         if (board[j][i].getType() != '.')
             break;
     }
     //checks down-left
     for (int i = pieceX - 1, j = pieceY - 1; i >= 0 && j >= 0 && board[j][i].getColor() != pieceColor; i--, j--)
     {
-        board[j][i].setIsUnderAttack(true);
+        if (pieceColor == 0)
+            board[j][i].setIsUnderAttackByWhite(true);
+        else if (pieceColor == 1)
+            board[j][i].setIsUnderAttackByBlack(true);
+        
+        board[j][i].insertPiecesAttack(p);
         if (board[j][i].getType() != '.')
             break;
     }
@@ -476,21 +692,33 @@ void Board::isKnightAttacks(const Piece &p)
     //  |    
     if (pieceX + 1 < 8 && pieceY + 2 < 8) {
         if (board[pieceY + 2][pieceX + 1].getColor() != pieceColor) {
-            board[pieceY + 2][pieceX + 1].setIsUnderAttack(true);
+            if (pieceColor == 0)
+                board[pieceY + 2][pieceX + 1].setIsUnderAttackByWhite(true);
+            else if (pieceColor == 1)
+                board[pieceY + 2][pieceX + 1].setIsUnderAttackByBlack(true);
+            board[pieceY + 2][pieceX + 1].insertPiecesAttack(p);
         }
     }
     //   ____
     //  |
     if (pieceX + 2 < 8 && pieceY + 1 < 8) {
         if (board[pieceY + 1][pieceX + 2].getColor() != pieceColor) {
-            board[pieceY + 1][pieceX + 2].setIsUnderAttack(true);
+            if (pieceColor == 0)
+                board[pieceY + 1][pieceX + 2].setIsUnderAttackByWhite(true);
+            else if (pieceColor == 1)
+                board[pieceY + 1][pieceX + 2].setIsUnderAttackByBlack(true);
+            board[pieceY + 1][pieceX + 2].insertPiecesAttack(p);
         }
     }
     //   ____
     //      |
     if (pieceX + 2 < 8 && pieceY - 1 >= 0) {
-        if (board[pieceY - 1][pieceX + 2].getColor() != pieceColor) { 
-            board[pieceY - 1][pieceX + 2].setIsUnderAttack(true);
+        if (board[pieceY - 1][pieceX + 2].getColor() != pieceColor) {
+            if (pieceColor == 0)
+                board[pieceY - 1][pieceX + 2].setIsUnderAttackByWhite(true);
+            else if (pieceColor == 1)
+                board[pieceY - 1][pieceX + 2].setIsUnderAttackByBlack(true);
+            board[pieceY - 1][pieceX + 2].insertPiecesAttack(p);
         }
     }
     //   ___
@@ -498,7 +726,11 @@ void Board::isKnightAttacks(const Piece &p)
     //      |
     if (pieceX + 1 < 8 && pieceY - 2 >= 0) {
         if (board[pieceY - 2][pieceX + 1].getColor() != pieceColor) {
-            board[pieceY - 2][pieceX + 1].setIsUnderAttack(true);
+            if (pieceColor == 0)
+                board[pieceY - 2][pieceX + 1].setIsUnderAttackByWhite(true);
+            else if (pieceColor == 1)
+                board[pieceY - 2][pieceX + 1].setIsUnderAttackByBlack(true);
+            board[pieceY - 2][pieceX + 1].insertPiecesAttack(p);
         }
     }
     //      ___
@@ -506,20 +738,32 @@ void Board::isKnightAttacks(const Piece &p)
     //      |
     if (pieceX - 1 >= 0 && pieceY - 2 >= 0) {
         if (board[pieceY - 2][pieceX - 1].getColor() != pieceColor) {
-            board[pieceY - 2][pieceX - 1].setIsUnderAttack(true);
+            if (pieceColor == 0)
+                board[pieceY - 2][pieceX - 1].setIsUnderAttackByWhite(true);
+            else if (pieceColor == 1)
+                board[pieceY - 2][pieceX - 1].setIsUnderAttackByBlack(true);
+            board[pieceY - 2][pieceX - 1].insertPiecesAttack(p);
         }
     }
     //      ____
     //      |
     if (pieceX - 2 >= 0 && pieceY - 1 >= 0) {
         if (board[pieceY - 1][pieceX - 2].getColor() != pieceColor) {
-            board[pieceY - 1][pieceX - 2].setIsUnderAttack(true);
+            if (pieceColor == 0)
+                board[pieceY - 1][pieceX - 2].setIsUnderAttackByWhite(true);
+            else if (pieceColor == 1)
+                board[pieceY - 1][pieceX - 2].setIsUnderAttackByBlack(true);
+            board[pieceY - 1][pieceX - 2].insertPiecesAttack(p);
         }
     }
     //     |____
     if (pieceX - 2 >= 0 && pieceY + 1 < 8) {
         if (board[pieceY + 1][pieceX - 2].getColor() != pieceColor) {
-            board[pieceY + 1][pieceX - 2].setIsUnderAttack(true);
+            if (pieceColor == 0)
+                board[pieceY + 1][pieceX - 2].setIsUnderAttackByWhite(true);
+            else if (pieceColor == 1)
+                board[pieceY + 1][pieceX - 2].setIsUnderAttackByBlack(true);
+            board[pieceY + 1][pieceX - 2].insertPiecesAttack(p);
         }
     }
     //  |
@@ -527,7 +771,11 @@ void Board::isKnightAttacks(const Piece &p)
     //  |____
     if (pieceX - 1 >= 0 && pieceY + 2 < 8) {
         if (board[pieceY + 2][pieceX - 1].getColor() != pieceColor) {
-            board[pieceY + 2][pieceX - 1].setIsUnderAttack(true);
+            if (pieceColor == 0)
+                board[pieceY + 2][pieceX - 1].setIsUnderAttackByWhite(true);
+            else if (pieceColor == 1)
+                board[pieceY + 2][pieceX - 1].setIsUnderAttackByBlack(true);
+            board[pieceY + 2][pieceX - 1].insertPiecesAttack(p);
         }
     }
 }
@@ -541,38 +789,28 @@ void Board::isQueenAttacks(const Piece &p)
 void Board::updateUnderAttack()
 {
     for (int i = 0; i < 64; i++)
-        board[i / 8][i % 8].setIsUnderAttack(false);
+    {
+        board[i / 8][i % 8].setIsUnderAttackByBlack(false);
+        board[i / 8][i % 8].setIsUnderAttackByWhite(false);
+        board[i / 8][i % 8].clearPiecesAttacks();
+    }
     for (int i = 0; i < 8; ++i)
     {
         for (int j = 0; j < 8; ++j)
         {
             Piece& p = board[i][j];
             if ((p.getType() == 'P' || p.getType() == 'p'))
-            {
                 isPawnAttacks(p);
-            }
             else if ((p.getType() == 'R' || p.getType() == 'r'))
-            {
                 isRookAttacks(p);
-            }
             else if ((p.getType() == 'B' || p.getType() == 'b'))
-            {
                 isBishopAttacks(p);
-            }
             else if ((p.getType() == 'N' || p.getType() == 'n'))
-            {
                 isKnightAttacks(p);
-            }
             else if ((p.getType() == 'Q' || p.getType() == 'q'))
-            {
                 isQueenAttacks(p);
-            }
-            // else if ((p.getType() == 'K' || p.getType() == 'k'))
-            // {
-            //     Piece& pieceGetsAttacked = isKingAttacks(p);
-            //     if (!(pieceGetsAttacked == p))
-            //         pieceGetsAttacked.setIsUnderAttack(true);
-            // }
+            else if ((p.getType() == 'K' || p.getType() == 'k'));
+                // isKingAttacks(p);
         }
     }
 }
@@ -582,7 +820,7 @@ void Board::score()
     double whiteScore = 0;
     double blackScore = 0;
     double pieceScore = 0;
-    updateUnderAttack();//this function will update the isUnderAttack of each piece
+    // updateUnderAttack();//this function will update the isUnderAttack of each piece
     for (int i = 0; i < 8; ++i)
     {
         for (int j = 0; j < 8; ++j)
@@ -591,11 +829,11 @@ void Board::score()
             pieceScore = (double)p.getPoint();
             if (p.getColor() == 0)
             {
-                whiteScore += pieceScore - 0.5 * (double)p.getIsUnderAttack()*pieceScore;
+                whiteScore += pieceScore - 0.5 * (double)p.getIsUnderAttackByBlack()*pieceScore;
             }
             else if (p.getColor() == 1)
             {
-                blackScore += pieceScore - 0.5 * (double)p.getIsUnderAttack()*pieceScore;
+                blackScore += pieceScore - 0.5 * (double)p.getIsUnderAttackByWhite()*pieceScore;
             }
         }
     }
@@ -617,5 +855,303 @@ std::ostream &operator<<(std::ostream &os, const Board &board)
     std::cout << "    ";
     for (int i = 0; i < 8; i++)
         std::cout << (char)('a' + i) << " ";
+
+    // std::cout << "\n\n\n";
+    // for (int i = 7; i >= 0; --i) {
+    //     std::cout << i + 1 << " | ";
+    //     for (int j = 0; j < 8; j++)
+    //         std::cout << b[i][j].getIsUnderAttackByWhite() << " ";
+    //     std::cout << std::endl;
+    // }
+    // std::cout << "    - - - - - - - -" << std::endl;
+    // std::cout << "    ";
+    // for (int i = 0; i < 8; i++)
+    //     std::cout << (char)('a' + i) << " ";
+
+    // std::cout << "\n\n\n";
+    // for (int i = 7; i >= 0; --i) {
+    //     std::cout << i + 1 << " | ";
+    //     for (int j = 0; j < 8; j++)
+    //         std::cout << b[i][j].getIsUnderAttackByBlack() << " ";
+    //     std::cout << std::endl;
+    // }
+    // std::cout << "    - - - - - - - -" << std::endl;
+    // std::cout << "    ";
+    // for (int i = 0; i < 8; i++)
+    //     std::cout << (char)('a' + i) << " ";
     return os;
+}
+
+bool Board::saveTheKingFromRook(const Piece& king, const Piece& rook) const
+{
+    int kingX = king.getX();
+    int kingY = king.getY();
+    int rookX = rook.getX();
+    int rookY = rook.getY();
+    int pieceColor = king.getColor();
+    int i = 0;
+    int j = 0;
+    int size = 0;
+    //checks up
+    if (kingX == rookX && kingY < rookY){
+        if (pieceColor == 0) {
+            for (i = kingY + 1; i < rookY; i++) {
+                const Piece& p = board[i][kingX];
+                if (p.getIsUnderAttackByWhite() == true) {
+                    size = p.getPieceAttacksSize();
+                    for (int i = 0; i < size; ++i) {
+                        const Piece& attackPiece = p.getPieceAttacks(i);
+                        if (attackPiece.getType() == 'R' || attackPiece.getType() == 'Q'
+                                || attackPiece.getType() == 'N' || attackPiece.getType() == 'B')
+                            return true;
+                    }
+                }
+            }
+        }
+        else if (pieceColor == 1) {
+            for (i = kingY + 1; i < rookY; i++) {
+                const Piece& p = board[i][kingX];
+                if (p.getIsUnderAttackByBlack() == true) {
+                    size = p.getPieceAttacksSize();
+                    for (int i = 0; i < size; ++i) {
+                        const Piece& attackPiece = p.getPieceAttacks(i);
+                        if (attackPiece.getType() == 'r' || attackPiece.getType() == 'q'
+                                || attackPiece.getType() == 'n' || attackPiece.getType() == 'b')
+                            return true;
+                    }
+                }
+            }
+        }
+    }
+    //checks down
+    else if (kingX == rookX && kingY > rookY){
+        if (pieceColor == 0) {
+            for (i = kingY - 1; i > rookY; i--) {
+                const Piece& p = board[i][kingX];
+                if (p.getIsUnderAttackByWhite() == true) {
+                    size = p.getPieceAttacksSize();
+                    for (int i = 0; i < size; ++i) {
+                        const Piece& attackPiece = p.getPieceAttacks(i);
+                        if (attackPiece.getType() == 'R' || attackPiece.getType() == 'Q'
+                                || attackPiece.getType() == 'N' || attackPiece.getType() == 'B')
+                            return true;
+                    }
+                }
+            }
+        }
+        else if (pieceColor == 1) {
+            for (i = kingY - 1; i > rookY; i--) {
+                const Piece& p = board[i][kingX];
+                if (p.getIsUnderAttackByBlack() == true) {
+                    size = p.getPieceAttacksSize();
+                    for (int i = 0; i < size; ++i) {
+                        const Piece& attackPiece = p.getPieceAttacks(i);
+                        if (attackPiece.getType() == 'r' || attackPiece.getType() == 'q'
+                                || attackPiece.getType() == 'n' || attackPiece.getType() == 'b')
+                            return true;
+                    }
+                }
+            }
+        }
+    }
+    //checks right
+    else if (kingX < rookX && kingY == rookY){
+        if (pieceColor == 0) {
+            for (i = kingX + 1; i < rookX; i++) {
+                const Piece& p = board[kingY][i];
+                if (p.getIsUnderAttackByWhite() == true) {
+                    size = p.getPieceAttacksSize();
+                    for (int i = 0; i < size; ++i) {
+                        const Piece& attackPiece = p.getPieceAttacks(i);
+                        if (attackPiece.getType() == 'R' || attackPiece.getType() == 'Q'
+                                || attackPiece.getType() == 'N' || attackPiece.getType() == 'B')
+                            return true;
+                    }
+                }
+            }
+        }
+        else if (pieceColor == 1) {
+            for (i = kingX + 1; i < rookX; i++) {
+                const Piece& p = board[kingY][i];
+                if (p.getIsUnderAttackByBlack() == true) {
+                    size = p.getPieceAttacksSize();
+                    for (int i = 0; i < size; ++i) {
+                        const Piece& attackPiece = p.getPieceAttacks(i);
+                        if (attackPiece.getType() == 'r' || attackPiece.getType() == 'q'
+                                || attackPiece.getType() == 'n' || attackPiece.getType() == 'b')
+                            return true;
+                    }
+                }
+            }
+        }
+    }
+    //checks left
+    else if (kingX > rookX && kingY == rookY){
+        if (pieceColor == 0) {
+            for (i = kingX - 1; i > rookX; i--) {
+                const Piece& p = board[kingY][i];
+                if (p.getIsUnderAttackByWhite() == true) {
+                    size = p.getPieceAttacksSize();
+                    for (int i = 0; i < size; ++i) {
+                        const Piece& attackPiece = p.getPieceAttacks(i);
+                        if (attackPiece.getType() == 'R' || attackPiece.getType() == 'Q'
+                                || attackPiece.getType() == 'N' || attackPiece.getType() == 'B')
+                            return true;
+                    }
+                }
+            }
+        }
+        else if (pieceColor == 1) {
+            for (i = kingX - 1; i > rookX; i--) {
+                const Piece& p = board[kingY][i];
+                if (p.getIsUnderAttackByBlack() == true) {
+                    size = p.getPieceAttacksSize();
+                    for (int i = 0; i < size; ++i) {
+                        const Piece& attackPiece = p.getPieceAttacks(i);
+                        if (attackPiece.getType() == 'r' || attackPiece.getType() == 'q'
+                                || attackPiece.getType() == 'n' || attackPiece.getType() == 'b')
+                            return true;
+                    }
+                }
+            }
+        }
+    }
+    return false;
+}
+
+bool Board::saveTheKingFromBishop(const Piece &king, const Piece &rook) const
+{
+    int kingX = king.getX();
+    int kingY = king.getY();
+    int rookX = rook.getX();
+    int rookY = rook.getY();
+    int pieceColor = king.getColor();
+    int i = 0;
+    int j = 0;
+    int size = 0;
+    //checks up-right
+    if (kingX < rookX && kingY < rookY){
+        if (pieceColor == 0) {
+            for (i = kingX + 1, j = kingY + 1; i < rookX && j < rookY; i++, j++) {
+                const Piece& p = board[j][i];
+                if (p.getIsUnderAttackByWhite() == true) {
+                    size = p.getPieceAttacksSize();
+                    for (int i = 0; i < size; ++i) {
+                        const Piece& attackPiece = p.getPieceAttacks(i);
+                        if (attackPiece.getType() == 'B' || attackPiece.getType() == 'Q'
+                                || attackPiece.getType() == 'N' || attackPiece.getType() == 'R')
+                            return true;
+                    }
+                }
+            }
+        }
+        else if (pieceColor == 1) {
+            for (i = kingX + 1, j = kingY + 1; i < rookX && j < rookY; i++, j++) {
+                const Piece& p = board[j][i];
+                if (p.getIsUnderAttackByBlack() == true) {
+                    size = p.getPieceAttacksSize();
+                    for (int i = 0; i < size; ++i) {
+                        const Piece& attackPiece = p.getPieceAttacks(i);
+                        if (attackPiece.getType() == 'b' || attackPiece.getType() == 'q'
+                                || attackPiece.getType() == 'n' || attackPiece.getType() == 'r')
+                            return true;
+                    }
+                }
+            }
+        }
+    }
+    //checks up-left
+    else if (kingX > rookX && kingY < rookY){
+        if (pieceColor == 0) {
+            for (i = kingX - 1, j = kingY + 1; i > rookX && j < rookY; i--, j++) {
+                const Piece& p = board[j][i];
+                if (p.getIsUnderAttackByWhite() == true) {
+                    size = p.getPieceAttacksSize();
+                    for (int i = 0; i < size; ++i) {
+                        const Piece& attackPiece = p.getPieceAttacks(i);
+                        if (attackPiece.getType() == 'B' || attackPiece.getType() == 'Q'
+                                || attackPiece.getType() == 'N' || attackPiece.getType() == 'R')
+                            return true;
+                    }
+                }
+            }
+        }
+        else if (pieceColor == 1) {
+            for (i = kingX - 1, j = kingY + 1; i > rookX && j < rookY; i--, j++) {
+                const Piece& p = board[j][i];
+                if (p.getIsUnderAttackByBlack() == true) {
+                    size = p.getPieceAttacksSize();
+                    for (int i = 0; i < size; ++i) {
+                        const Piece& attackPiece = p.getPieceAttacks(i);
+                        if (attackPiece.getType() == 'b' || attackPiece.getType() == 'q'
+                                || attackPiece.getType() == 'n' || attackPiece.getType() == 'r')
+                            return true;
+                    }
+                }
+            }
+        }
+    }
+    //checks down-right
+    else if (kingX < rookX && kingY > rookY){
+        if (pieceColor == 0) {
+            for (i = kingX + 1, j = kingY - 1; i < rookX && j > rookY; i++, j--) {
+                const Piece& p = board[j][i];
+                if (p.getIsUnderAttackByWhite() == true) {
+                    size = p.getPieceAttacksSize();
+                    for (int i = 0; i < size; ++i) {
+                        const Piece& attackPiece = p.getPieceAttacks(i);
+                        if (attackPiece.getType() == 'B' || attackPiece.getType() == 'Q'
+                                || attackPiece.getType() == 'N' || attackPiece.getType() == 'R')
+                            return true;
+                    }
+                }
+            }
+        }
+        else if (pieceColor == 1) {
+            for (i = kingX + 1, j = kingY - 1; i < rookX && j > rookY; i++, j--) {
+                const Piece& p = board[j][i];
+                if (p.getIsUnderAttackByBlack() == true) {
+                    size = p.getPieceAttacksSize();
+                    for (int i = 0; i < size; ++i) {
+                        const Piece& attackPiece = p.getPieceAttacks(i);
+                        if (attackPiece.getType() == 'b' || attackPiece.getType() == 'q'
+                                || attackPiece.getType() == 'n' || attackPiece.getType() == 'r')
+                            return true;
+                    }
+                }
+            }
+        }
+    }
+    //checks down-left
+    else if (kingX > rookX && kingY > rookY){
+        if (pieceColor == 0) {
+            for (i = kingX - 1, j = kingY - 1; i > rookX && j > rookY; i--, j--) {
+                const Piece& p = board[j][i];
+                if (p.getIsUnderAttackByWhite() == true) {
+                    size = p.getPieceAttacksSize();
+                    for (int i = 0; i < size; ++i) {
+                        const Piece& attackPiece = p.getPieceAttacks(i);
+                        if (attackPiece.getType() == 'B' || attackPiece.getType() == 'Q'
+                                || attackPiece.getType() == 'N' || attackPiece.getType() == 'R')
+                            return true;
+                    }
+                }
+            }
+        }
+        else if (pieceColor == 1) {
+            for (i = kingX - 1, j = kingY - 1; i > rookX && j > rookY; i--, j--) {
+                const Piece& p = board[j][i];
+                if (p.getIsUnderAttackByBlack() == true) {
+                    size = p.getPieceAttacksSize();
+                    for (int i = 0; i < size; ++i) {
+                        const Piece& attackPiece = p.getPieceAttacks(i);
+                        if (attackPiece.getType() == 'b' || attackPiece.getType() == 'q'
+                                || attackPiece.getType() == 'n' || attackPiece.getType() == 'r')
+                            return true;
+                    }
+                }
+            }
+        }
+    }
+    return false;
 }

@@ -5,10 +5,11 @@ int main(void)
     Board board;
     std::cout << board << std::endl;
     board.score();
-    while (1)
+    int turn = 0;
+    while (board.isCheckmate(turn % 2) == 0)
     {
         std::string input;
-        if (board.getTurn() % 2 == 0)
+        if (turn % 2 == 0)
             std::cout << "White's turn" << std::endl;
         else
             std::cout << "Black's turn" << std::endl;
@@ -18,9 +19,20 @@ int main(void)
         {
             if (board.validateMove(input))
             {
-                std::cout << board << std::endl;
-                Board::setTurn(Board::getTurn() + 1);
-                board.score();
+                board.movePiece(input[0]-'a', input[1]-'0'-1, input[2]-'a', input[3]-'0'-1);
+                board.updateUnderAttack();
+                if (board.isCheck(turn % 2))
+                {
+                    board.movePiece(input[2]-'a', input[3]-'0'-1, input[0]-'a', input[1]-'0'-1);
+                    board.updateUnderAttack();
+                    std::cout << "It is check, you need to protect your king!\n";
+                }
+                else
+                {
+                    Board::setTurn(++turn);
+                    board.score();
+                    std::cout << board << std::endl;
+                }
             }
             else
                 std::cout << "Invalid move" << std::endl;
@@ -28,5 +40,9 @@ int main(void)
         else
             std::cout << "Invalid input" << std::endl;
     }
+    if (Board::getTurn() % 2 == 0)
+        std::cout << "Black Won\n";
+    else
+        std::cout << "White Won\n";
     return 0;
 }

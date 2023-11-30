@@ -18,15 +18,6 @@ class Board{
         bool validateRookMove(int oldX, int oldY, int newX, int newY) const;
         bool validateBishopMove(int oldX, int oldY, int newX, int newY) const;
         bool validateKnightMove(int oldX, int oldY, int newX, int newY) const;
-        bool validateKingMove(int oldX, int oldY, int newX, int newY) const;
-        bool saveTheKingFromRook(const Piece& king, const Piece& rook) const;
-        bool saveTheKingFromBishop(const Piece& king, const Piece& rook) const;
-        bool isCheckmate(int color);
-        bool isWhiteCheck();
-        bool isCheck(int color);
-        bool isBlackCheck();
-        Piece& getKing(int color);
-        int check();
 
         bool isTherePiece(int x, int y) const;
         int movePiece(int oldX, int oldY, int newX, int newY);

@@ -6,8 +6,7 @@ Piece::Piece() {
     this->y = -1;
     this->point = 0;
     this->color = 0;
-    this->isUnderAttackByBlack = 0;
-    this->isUnderAttackByWhite = 0;
+    this->isUnderAttack = 0;
 }
 
 Piece::Piece(char _type, int color, int x, int y, int point) {
@@ -16,8 +15,7 @@ Piece::Piece(char _type, int color, int x, int y, int point) {
     this->x = x;
     this->y = y;
     this->point = point;
-    this->isUnderAttackByBlack = 0;
-    this->isUnderAttackByWhite = 0;
+    this->isUnderAttack = 0;
 }
 
 Piece::~Piece() {
@@ -35,20 +33,14 @@ Piece& Piece::operator=(const Piece& other) {
         this->x = other.x;
         this->y = other.y;
         this->point = other.point;
-        this->isUnderAttackByBlack = other.isUnderAttackByBlack;
-        this->isUnderAttackByWhite = other.isUnderAttackByWhite;
+        this->isUnderAttack = other.isUnderAttack;
     }
     return *this;
 }
 
 bool Piece::operator==(const Piece &other) const
 {
-    return (this->x == other.x && this->y == other.y && this->type == other.type \
-        && this->color == other.color && this->point == other.point \
-        && this->isUnderAttackByBlack == other.isUnderAttackByBlack \
-        && this->isUnderAttackByWhite == other.isUnderAttackByWhite \
-        && this->piecesAttacks == other.piecesAttacks \
-        && this->possibleMoves == other.possibleMoves);
+    return (this->x == other.x && this->y == other.y);
 }
 
 char Piece::getType() const {
@@ -59,13 +51,7 @@ int Piece::getColor() const {
     return this->color;
 }
 
-void Piece::insertPiecesAttack(const Piece& p)
-{
-    this->piecesAttacks.push_back(p);
-}
-
-int Piece::getX() const
-{
+int Piece::getX() const{
     return this->x;
 }
 
@@ -91,14 +77,9 @@ void Piece::setCoords(std::string coords) {
     this->y = coords[1] - '1';
 }
 
-void Piece::setIsUnderAttackByWhite(bool isUnderAttackByWhite)
+void Piece::setIsUnderAttack(bool isUnderAttack)
 {
-    this->isUnderAttackByWhite = isUnderAttackByWhite;
-}
-
-void Piece::setIsUnderAttackByBlack(bool isUnderAttack)
-{
-    this->isUnderAttackByBlack = isUnderAttack;
+    this->isUnderAttack = isUnderAttack;
 }
 void Piece::setColor(int color)
 {
@@ -117,7 +98,6 @@ std::ostream &operator<<(std::ostream &os, const Piece &piece)
     os << "piece x: " << piece.x << std::endl;
     os << "piece y: " << piece.y << std::endl;
     os << "piece point: " << piece.point << std::endl;
-    os << "piece isUnderAttackByBlack: " << piece.isUnderAttackByBlack;
-    os << "piece isUnderAttackByBlack: " << piece.isUnderAttackByWhite;
+    os << "piece isUnderAttack: " << piece.isUnderAttack;
     return os;
 }
