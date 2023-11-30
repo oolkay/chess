@@ -3,6 +3,12 @@
 int main(void)
 {
     Board board;
+    std::ifstream ifs;
+    ifs.open("board.txt");
+    if (ifs.is_open())
+        ifs >> board;
+    else
+        std::cout << "File not found" << std::endl;
     std::cout << board << std::endl;
     board.score();
     int turn = 0;

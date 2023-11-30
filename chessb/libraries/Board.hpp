@@ -4,6 +4,7 @@
 #include "Piece.hpp"
 #include <vector>
 #include <string>
+#include <fstream>
 
 class Board{
     public:
@@ -11,7 +12,13 @@ class Board{
         ~Board();
         Board(const Board& other);
         Board& operator=(const Board& other);
+
+        //<<, >> OPERATOR OVERLOADS
         friend std::ostream& operator<<(std::ostream& os, const Board& board);
+        friend std::istream& operator>>(std::istream& is, Board& board);
+
+
+        //VALIDATION OF INPUT AND MOVE
         bool checkInputFormat(const std::string& input) const;
         bool validateMove(const std::string& input);
         bool validatePawnMove(int oldX, int oldY, int newX, int newY) const;
@@ -19,6 +26,11 @@ class Board{
         bool validateBishopMove(int oldX, int oldY, int newX, int newY) const;
         bool validateKnightMove(int oldX, int oldY, int newX, int newY) const;
         bool validateKingMove(int oldX, int oldY, int newX, int newY) const;
+        bool isTherePiece(int x, int y) const;
+        int movePiece(int oldX, int oldY, int newX, int newY);
+
+
+        //CHECKMATE, CHECK
         bool saveTheKingFromRook(const Piece& king, const Piece& rook) const;
         bool saveTheKingFromBishop(const Piece& king, const Piece& rook) const;
         bool isCheckmate(int color);
@@ -28,10 +40,7 @@ class Board{
         Piece& getKing(int color);
         int check();
 
-        bool isTherePiece(int x, int y) const;
-        int movePiece(int oldX, int oldY, int newX, int newY);
-        inline static int getTurn() { return turn;};
-        static void setTurn(int turn);
+        //SCORE, THREATS
         void isPawnAttacks(const Piece& p) ;
         void isRookAttacks(const Piece& p);
         void isBishopAttacks(const Piece& p);
@@ -40,6 +49,9 @@ class Board{
         void isQueenAttacks(const Piece& p);
         void updateUnderAttack();
         void score();
+
+        inline static int getTurn() { return turn;};
+        static void setTurn(int turn);
 
 
     private:

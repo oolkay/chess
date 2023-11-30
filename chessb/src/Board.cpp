@@ -1155,3 +1155,41 @@ bool Board::saveTheKingFromBishop(const Piece &king, const Piece &rook) const
     }
     return false;
 }
+
+std::istream& operator>>(std::istream& is, Board& b)
+{
+    std::vector<Piece> line;
+    char ch;
+    int color;
+    for (int i = 7; i >= 0; --i) {
+        line.clear();
+        for (int j = 0; j < 8; ++j)
+        {
+            is >> ch;
+            if (ch < 'Z' && ch > 'A')
+                color = 0;
+            else if (ch < 'z' && ch > 'a')
+                color = 1;
+            if (ch == 'r' || ch == 'R')
+                line.push_back(Piece(ch, color, j, i, 5));
+            else if (ch == 'n' || ch == 'N')
+                line.push_back(Piece(ch, color, j, i, 3));
+            else if (ch == 'b' || ch == 'B')
+                line.push_back(Piece(ch, color, j, i, 3));
+            else if (ch == 'q' || ch == 'Q')
+                line.push_back(Piece(ch, color, j, i, 9));
+            else if (ch == 'k' || ch == 'K')
+                line.push_back(Piece(ch, color, j, i, 0));
+            else if (ch == 'p' || ch == 'P')
+                line.push_back(Piece(ch, color, j, i, 1));
+            else if (ch == '.')
+                line.push_back(Piece(ch, -1, j, i, 0));
+            else {
+                std::cout << "The file contains unknown element" << std::endl;
+                exit (-1);
+            }
+        }
+        b.board[i] = line;
+    }
+    b.updateUnderAttack();
+}
