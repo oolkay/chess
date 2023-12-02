@@ -219,6 +219,7 @@ bool Board::validatePawnMove(int oldX, int oldY, int newX, int newY) const
 
 bool Board::validateRookMove(int oldX, int oldY, int newX, int newY) const
 {
+    const Piece& destCell = board[newY][newX];
     //moves vertically
     if (oldX == newX)
     {
@@ -260,6 +261,7 @@ bool Board::validateRookMove(int oldX, int oldY, int newX, int newY) const
 
 bool Board::validateBishopMove(int oldX, int oldY, int newX, int newY) const
 {
+    const Piece& destCell = board[newY][newX];
     int i = 0;
     int j = 0;
     //moves diagonally
@@ -339,7 +341,7 @@ bool Board::validateKingMove(int oldX, int oldY, int newX, int newY) const
     else if (newX == oldX - 1 && newY == oldY - 1 && isUnderAttack == false) return true;
     else if (newX == oldX && newY == oldY - 1 && isUnderAttack == false) return true;
     else if (newX == oldX + 1 && newY == oldY - 1 && isUnderAttack == false) return true;
-    // std::cout << "\n[The king can not move to the given cell, it is check you need to protect your king!]\n";
+    std::cout << "\n[The king can not move to the given cell, it is check you need to protect your king!]\n";
     return false;
 }
 
@@ -350,6 +352,7 @@ bool Board::isCheckmate(int color)
     Piece& king = getKing(color);
     int x = king.getX();
     int y = king.getY();
+    int flag = 1;
     if (king.getIsUnderAttack(color) == false)
         return false;
 
@@ -367,11 +370,16 @@ bool Board::isCheckmate(int color)
     int size = king.getPieceAttacksSize();
     if (size > 1)
         return true;
+
     //CAN ANY PIECE PROTECET THE KING BY EATING THE ATTACKING PIECE
     const Piece& attackPiece = king.getPieceAttacks(0);
     Piece tmp = attackPiece;
     const std::vector<Piece>& piecesDefends = attackPiece.getAttackers();
-    for (const auto &defenderPiece : piecesDefends)//bozulursa & kaldır
+
+    const int attackColor = attackPiece.getColor();
+    const int defenderSize = attackPiece.getPieceAttacksSize();
+
+    for (const auto defenderPiece : piecesDefends)
     {
         movePiece(defenderPiece.getX(), defenderPiece.getY(), attackPiece.getX(), attackPiece.getY());
         updateUnderAttack();
@@ -382,7 +390,9 @@ bool Board::isCheckmate(int color)
         }
     }
 
+    std::cout << "debug\n";
     //CAN ANY PIECE PROTECT THE KING BY BLOCKING THE ATTACKING PIECE
+    flag = 1;
 
     const char type = attackPiece.getType();
     if (type == 'R' || type == 'r') {
@@ -395,15 +405,13 @@ bool Board::isCheckmate(int color)
     }
     else if (type == 'Q' || type == 'q')
     {
-        if (attackPiece.getX() == king.getX() || attackPiece.getY() == king.getY()) {
+        if (attackPiece.getX() == king.getX() || attackPiece.getY() == king.getY())
             if (saveTheKingFromRook(king, attackPiece) == true)
                 return false;
-        }
         else
             if (saveTheKingFromBishop(king, attackPiece) == true)
                 return false;
     }
-    std::cout << "\n[Checkmate!!]\n";
     return true;
 }
 
@@ -418,17 +426,16 @@ bool Board::isWhiteCheck()
 bool Board::isCheck(int color)
 {
     const Piece& king = getKing(color);
-    if (color == WHITE) {
+    if (color == 0) {
         if (king.getIsUnderAttackByBlack() == true)
             return true;
         return false;
     }
-    else if (color == BLACK){
+    else {
         if (king.getIsUnderAttackByWhite() == true)
             return true;
         return false;
     }
-    return false;
 }
 
 bool Board::isBlackCheck()
@@ -471,6 +478,7 @@ bool Board::checkAllDefenders(const Piece& p)
             updateUnderAttack();
             if (isCheck(color) == false)
             {
+                std::cout << *this << std::endl;
                 undoMove(tmp, p.getX(), p.getY(), defenderPiece.getX(), defenderPiece.getY());
                 return true;
             }
@@ -566,26 +574,27 @@ void Board::isRookAttacks(const Piece &p)
     int pieceColor = p.getColor();
     int pieceX = p.getX();
     int pieceY = p.getY();
+    int i = pieceY + 1;
     //checks up
-    for (int i = pieceY + 1; i < 8 ; i++) {
+    for (int i = pieceY + 1; i < 8 && board[i][pieceX].getColor() != pieceColor; i++) {
         board[i][pieceX].setAndInsert(p, pieceColor);
         if (board[i][pieceX].getType() != '.')
             break;
     }
     //checks down
-    for (int i = pieceY - 1; i >= 0 ; i--) {
+    for (int i = pieceY - 1; i >= 0 && board[i][pieceX].getColor() != pieceColor; i--) {
         board[i][pieceX].setAndInsert(p, pieceColor);
         if (board[i][pieceX].getType() != '.')
             break;
     }
     //checks right
-    for (int i = pieceX + 1; i < 8 ; i++) {
+    for (int i = pieceX + 1; i < 8 && board[pieceY][i].getColor() != pieceColor; i++) {
         board[pieceY][i].setAndInsert(p, pieceColor);
         if (board[pieceY][i].getType() != '.')
             break;
     }
     //checks left
-    for (int i = pieceX - 1; i >= 0 ; i--) {
+    for (int i = pieceX - 1; i >= 0 && board[pieceY][i].getColor() != pieceColor; i--) {
         board[pieceY][i].setAndInsert(p, pieceColor);
         if (board[pieceY][i].getType() != '.')
             break;
@@ -603,7 +612,6 @@ void Board::isBishopAttacks(const Piece &p)
         board[j][i].setAndInsert(p, pieceColor);
         if (board[j][i].getType() != '.')
             break;
-        
     }
     //checks up-left
     for (int i = pieceX - 1, j = pieceY + 1; i >= 0 && j < 8 && board[j][i].getColor() != pieceColor; i--, j++)
@@ -777,6 +785,7 @@ void Board::score()
     double whiteScore = 0;
     double blackScore = 0;
     double pieceScore = 0;
+    // updateUnderAttack();//this function will update the isUnderAttack of each piece
     for (int i = 0; i < 8; ++i)
     {
         for (int j = 0; j < 8; ++j)
@@ -800,17 +809,17 @@ void Board::score()
 std::ostream &operator<<(std::ostream &os, const Board &board)
 {
     const std::vector< std::vector<Piece> > &b = board.board;
-    os << std::endl;
+    std::cout << std::endl;
     for (int i = 7; i >= 0; --i) {
-        os << i + 1 << " | ";
+        std::cout << i + 1 << " | ";
         for (int j = 0; j < 8; j++)
-            os << b[i][j].getType() << " ";
-        os << std::endl;
+            std::cout << b[i][j].getType() << " ";
+        std::cout << std::endl;
     }
-    os << "    - - - - - - - -" << std::endl;
-    os << "    ";
+    std::cout << "    - - - - - - - -" << std::endl;
+    std::cout << "    ";
     for (int i = 0; i < 8; i++)
-        os << (char)('a' + i) << " ";
+        std::cout << (char)('a' + i) << " ";
 
     // std::cout << "\n\n\n";
     // for (int i = 7; i >= 0; --i) {
@@ -846,6 +855,8 @@ bool Board::saveTheKingFromRook(const Piece& king, const Piece& rook)
     int rookY = rook.getY();
     int pieceColor = king.getColor();
     int i = 0;
+    int j = 0;
+    int size = 0;
     //checks up
     if (kingX == rookX && kingY < rookY) {
         for (i = kingY + 1; i < rookY; i++) {
@@ -936,6 +947,7 @@ bool Board::saveTheKingFromBishop(const Piece &king, const Piece &bishop)
     int pieceColor = king.getColor();
     int i = 0;
     int j = 0;
+    int size = 0;
     //checks up-right
     if (kingX < bishopX && kingY < bishopY)
     {
@@ -1087,5 +1099,6 @@ std::istream& operator>>(std::istream& is, Board& b)
         b.board[i] = line;
     }
     b.updateUnderAttack();
-    return is;
 }
+
+

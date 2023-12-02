@@ -16,11 +16,9 @@ class Board{
         Board(const Board& other);
         Board& operator=(const Board& other);
 
-        //<<, >> OPERATOR OVERLOADS AND FILE OPERANDS
+        //<<, >> OPERATOR OVERLOADS
         friend std::ostream& operator<<(std::ostream& os, const Board& board);
         friend std::istream& operator>>(std::istream& is, Board& board);
-        int loadFromFile(std::string fileName);
-        int saveToFile(std::string fileName);
 
 
         //VALIDATION OF INPUT AND MOVE

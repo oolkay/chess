@@ -182,8 +182,9 @@ std::ostream &operator<<(std::ostream &os, const Piece &piece)
     os << "piece point: " << piece.point << std::endl;
     os << "piece isUnderAttackByBlack: " << piece.isUnderAttackByBlack;
     os << "piece isUnderAttackByWhite: " << piece.isUnderAttackByWhite;
-    for (unsigned int i = 0; i < piece.piecesAttacks.size(); i++)
+    for (int i = 0; i < piece.piecesAttacks.size(); i++)
     {
+
         os << "piece piecesAttacks[" << i << "]: " << piece.piecesAttacks[i];
     }
     if (piece.piecesAttacks.size() == 0)
