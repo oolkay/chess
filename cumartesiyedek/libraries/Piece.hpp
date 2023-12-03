@@ -25,12 +25,14 @@ class Piece {
         inline Piece    getPieceAttacks(int i) const { return this->piecesAttacks[i];};
         inline std::vector<Piece> getAttackers() const { return this->piecesAttacks;};
         inline int      getPieceAttacksSize() const { return this->piecesAttacks.size();};
+        inline int      getPossibleMovesSize() const { return this->possibleMoves.size();};
+        inline std::string getPossibleMoves(int i) const { return this->possibleMoves[i];};
         int             getPoint() const;
         int             getColor() const;
 
         //SETTER
         void            setIsUnderAttack(int color, bool isUnderAttack);
-        void            setAndInsert(const Piece& attackerPiece, int color);
+        void            setAndInsert(Piece& attackerPiece, int color);
         void            insertPiecesAttack(const Piece& p);
         void            setType(char type);
         void            setCoords(int x, int y);
@@ -42,6 +44,7 @@ class Piece {
         
         //UTILS
         inline void clearPiecesAttacks() { this->piecesAttacks.clear();};
+        inline void clearPossibleMove() { this->possibleMoves.clear();};
         void upgradePawn();
 
     private:
@@ -53,7 +56,7 @@ class Piece {
         bool isUnderAttackByBlack;
         std::vector<std::string> possibleMoves;
         std::vector<Piece> piecesAttacks;
-        int color; // 0 for black, 1 for white, -1 for empty
+        int color;
 };
 
 #endif // PIECE_HPP

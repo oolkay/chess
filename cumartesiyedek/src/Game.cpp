@@ -55,16 +55,24 @@ void Game::gamePlay()
     while (board.isCheckmate(turn % 2) == 0)
     {
         input = inputFromUser(turn);
-        if (input != "save" && board.checkInputFormat(input))
+        if (input != "save" && input != "suggest" && board.checkInputFormat(input))
         {
             if (board.validateMove(input))
             {
+                Piece tmp = board.getPiece(input[3]-'0'-1, input[2]-'a');
                 if (board.movePiece(input[0]-'a', input[1]-'0'-1, input[2]-'a', input[3]-'0'-1) == 1)
                 {
                     board.updateUnderAttack();
-                    Board::setTurn(++turn);
-                    board.score();
-                    std::cout << board << std::endl;
+                    if (board.isCheck(turn % 2) == true) {
+                        board.undoMove(tmp, input[2]-'a', input[3]-'0'-1, input[0]-'a', input[1]-'0'-1);
+                        std::cout << "Invalid move, your king is under attack\n";
+                    }
+                    else
+                    {
+                        Board::setTurn(++turn);
+                        board.score();
+                        std::cout << board << std::endl;
+                    }
                 }
             }
         }
@@ -80,6 +88,13 @@ void Game::help()
     std::cout << "\nUse the standard notation for moves, e.g. e2e4\n";
     std::cout << "Type 'save' to save the game to a file\n";
     std::cout << "Type 'exit' to exit the game\n\n";
+}
+
+void Game::suggestMove()
+{
+    std::string move = board.suggestMove(Board::getTurn() % 2);
+    std::cout << "Suggested move: " << move << std::endl;
+    
 }
 
 int Game::saveToFile()
@@ -131,6 +146,10 @@ std::string Game::inputFromUser(int turn)
     {
         std::cout << "Thank you for playing\n";
         exit(0);
+    }
+    else if (input == "suggest")
+    {
+        suggestMove();
     }
     return (input);
 }

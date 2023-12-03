@@ -21,7 +21,7 @@ class Board{
         friend std::istream& operator>>(std::istream& is, Board& board);
         int loadFromFile(std::string fileName);
         int saveToFile(std::string fileName);
-
+        
 
         //VALIDATION OF INPUT AND MOVE
         bool checkInputFormat(const std::string& input) const;
@@ -49,14 +49,17 @@ class Board{
         bool checkAnyPawnDefendsBishop(int coordX, int coordY, const Piece& king);
 
         //SCORE, THREATS
-        void isPawnAttacks(const Piece& p) ;
-        void isRookAttacks(const Piece& p);
-        void isBishopAttacks(const Piece& p);
-        void isKnightAttacks(const Piece& p);
-        void isKingAttacks(const Piece& p);
-        void isQueenAttacks(const Piece& p);
+        void isPawnAttacks(Piece& p) ;
+        void isRookAttacks(Piece& p);
+        void isBishopAttacks(Piece& p);
+        void isKnightAttacks(Piece& p);
+        void isKingAttacks(Piece& p);
+        void isQueenAttacks(Piece& p);
         void updateUnderAttack();
+
         void score();
+        double  getScore(int color);
+        std::string suggestMove(int color);
 
         inline static int getTurn() { return turn;};
         inline Piece getPiece(int y, int x) { return board[y][x];};

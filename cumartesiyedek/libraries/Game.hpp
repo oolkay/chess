@@ -11,6 +11,7 @@ class Game
         void    gameMenu();
         void    gamePlay();
         void    help();
+        void    suggestMove();
         int     saveToFile();
         int     loadFromFile(std::string fileName);
         std::string inputFromUser(int turn);

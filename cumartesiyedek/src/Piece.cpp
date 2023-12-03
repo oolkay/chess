@@ -8,6 +8,7 @@ Piece::Piece() {
     this->color = 0;
     this->isUnderAttackByBlack = 0;
     this->isUnderAttackByWhite = 0;
+    std::vector<std::string> possibleMoves;
 }
 
 Piece::Piece(char _type, int color, int x, int y, int point) {
@@ -17,6 +18,7 @@ Piece::Piece(char _type, int color, int x, int y, int point) {
     this->y = y;
     this->point = point;
     this->isUnderAttackByBlack = 0;
+    std::vector<std::string> possibleMoves;
     this->isUnderAttackByWhite = 0;
 }
 
@@ -37,7 +39,14 @@ Piece& Piece::operator=(const Piece& other) {
         this->point = other.point;
         this->isUnderAttackByBlack = other.isUnderAttackByBlack;
         this->isUnderAttackByWhite = other.isUnderAttackByWhite;
-        this->piecesAttacks = other.piecesAttacks;
+        for (auto &p : other.piecesAttacks)
+        {
+            this->piecesAttacks.push_back(p);
+        }
+        for (auto &str : other.possibleMoves)
+        {
+            this->possibleMoves.push_back(str);
+        }
     }
     return *this;
 }
@@ -47,9 +56,7 @@ bool Piece::operator==(const Piece &other) const
     return (this->x == other.x && this->y == other.y && this->type == other.type \
         && this->color == other.color && this->point == other.point \
         && this->isUnderAttackByBlack == other.isUnderAttackByBlack \
-        && this->isUnderAttackByWhite == other.isUnderAttackByWhite \
-        && this->piecesAttacks == other.piecesAttacks \
-        && this->possibleMoves == other.possibleMoves);
+        && this->isUnderAttackByWhite == other.isUnderAttackByWhite );
 }
 
 char Piece::getType() const {
@@ -60,7 +67,7 @@ int Piece::getColor() const {
     return this->color;
 }
 
-void Piece::insertPiecesAttack(const Piece& p)
+void Piece::insertPiecesAttack(const Piece &p)
 {
     this->piecesAttacks.push_back(p);
 }
@@ -126,10 +133,74 @@ void Piece::setIsUnderAttack(int color, bool isUnderAttack)
         this->isUnderAttackByWhite = isUnderAttack;
 }
 
-void Piece::setAndInsert(const Piece& attackerPiece, int color)
+void Piece::setAndInsert(Piece& attackerPiece, int color)
 {
+    std::string coords;
     setIsUnderAttack(color, 1);
     this->piecesAttacks.push_back(attackerPiece);
+    if (this->getColor() == attackerPiece.getColor())
+        return;
+    if (attackerPiece.type == 'P' || attackerPiece.type == 'p')
+    {
+        // coords 
+        coords += attackerPiece.x + 'a';
+        coords += attackerPiece.y + '1';
+        if (attackerPiece.color == 0)
+        {
+            if (attackerPiece.y == 1)
+            {
+                coords += attackerPiece.x + 'a';
+                coords += attackerPiece.y + '2';
+                (attackerPiece.possibleMoves).push_back(coords);
+                coords.clear();
+                coords += attackerPiece.x + 'a';
+                coords += attackerPiece.y + '1';
+                coords += attackerPiece.x + 'a';
+                coords += attackerPiece.y + '3';
+                (attackerPiece.possibleMoves).push_back(coords);
+            }
+            else
+            {
+                coords += attackerPiece.x + 'a';
+                coords += attackerPiece.y + '2';
+                (attackerPiece.possibleMoves).push_back(coords);
+            }
+        }
+        else if (attackerPiece.color == 1)
+        {
+            if (attackerPiece.y == 6)
+            {
+                coords += attackerPiece.x + 'a';
+                coords += attackerPiece.y + '1' - 1;
+                (attackerPiece.possibleMoves).push_back(coords);
+                coords.clear();
+                coords += attackerPiece.x + 'a';
+                coords += attackerPiece.y + '1';
+                coords += attackerPiece.x + 'a';
+                coords += attackerPiece.y + '1' - 2;
+                (attackerPiece.possibleMoves).push_back(coords);
+            }
+            else
+            {
+                coords += attackerPiece.x + 'a';
+                coords += attackerPiece.y - '2';
+                (attackerPiece.possibleMoves).push_back(coords);
+            }
+        }
+
+    }
+    else
+    {
+        coords += attackerPiece.x + 'a';
+        coords += attackerPiece.y + '1';
+        coords += this->x + 'a';
+        coords += this->y + '1';
+        (attackerPiece.possibleMoves).push_back(coords);
+    }
+    // if (color  == 1)
+    // {
+    //     std::cout << attackerPiece.getType() << " " << coords << std::endl;
+    // }
 }
 
 void Piece::upgradePawn()

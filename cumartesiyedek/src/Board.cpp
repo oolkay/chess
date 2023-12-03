@@ -380,6 +380,8 @@ bool Board::isCheckmate(int color)
             undoMove(tmp, attackPiece.getX(), attackPiece.getY(), defenderPiece.getX(), defenderPiece.getY());
             return false;
         }
+        else
+            undoMove(tmp, attackPiece.getX(), attackPiece.getY(), defenderPiece.getX(), defenderPiece.getY());
     }
 
     //CAN ANY PIECE PROTECT THE KING BY BLOCKING THE ATTACKING PIECE
@@ -509,11 +511,11 @@ int Board::movePiece(int oldX, int oldY, int newX, int newY)
     oldCell.setColor(-1);
     oldCell.setPoint(0);
     updateUnderAttack();
-    if (isCheck(turn % 2) == true) {
-        undoMove(tmp, newX, newY, oldX, oldY);
-        std::cout << "\n[It is check, you need to protect your king!]\n";
-        return 0;
-    }
+    // int size = board[1][1].getPossibleMovesSize();
+    // for (int i = 0; i < size; i++)
+    // {
+    //     std::cout << board[1][1].getPossibleMoves(i) << std::endl;
+    // }
     return (1);
 }
 
@@ -535,7 +537,7 @@ void Board::setTurn(int turn)
     Board::turn = turn;
 }
 
-void Board::isPawnAttacks(const Piece &p)
+void Board::isPawnAttacks(Piece &p)
 {
     int x = p.getX();
     int y = p.getY();
@@ -561,7 +563,7 @@ void Board::isPawnAttacks(const Piece &p)
     }
 }
 
-void Board::isRookAttacks(const Piece &p)
+void Board::isRookAttacks(Piece &p)
 {
     int pieceColor = p.getColor();
     int pieceX = p.getX();
@@ -592,7 +594,7 @@ void Board::isRookAttacks(const Piece &p)
     }
 }
 
-void Board::isBishopAttacks(const Piece &p)
+void Board::isBishopAttacks(Piece &p)
 {
     int pieceColor = p.getColor();
     int pieceX = p.getX();
@@ -628,7 +630,7 @@ void Board::isBishopAttacks(const Piece &p)
     }
 }
 
-void Board::isKnightAttacks(const Piece &p)
+void Board::isKnightAttacks(Piece &p)
 {
     int pieceColor = p.getColor();
     int pieceX = p.getX();
@@ -686,13 +688,13 @@ void Board::isKnightAttacks(const Piece &p)
     }
 }
 
-void Board::isQueenAttacks(const Piece &p)
+void Board::isQueenAttacks(Piece &p)
 {
     isBishopAttacks(p);
     isRookAttacks(p);
 }
 
-void Board::isKingAttacks(const Piece &p)
+void Board::isKingAttacks(Piece &p)
 {
     int x = p.getX();
     int y = p.getY();
@@ -750,6 +752,7 @@ void Board::updateUnderAttack()
         board[i / 8][i % 8].setIsUnderAttackByBlack(false);
         board[i / 8][i % 8].setIsUnderAttackByWhite(false);
         board[i / 8][i % 8].clearPiecesAttacks();
+        board[i / 8][i % 8].clearPossibleMove();
     }
     for (int i = 0; i < 8; ++i)
     {
@@ -776,25 +779,34 @@ void Board::score()
 {
     double whiteScore = 0;
     double blackScore = 0;
-    double pieceScore = 0;
-    for (int i = 0; i < 8; ++i)
+    if (turn % 2 == 0)
     {
-        for (int j = 0; j < 8; ++j)
-        {
-            Piece& p = board[i][j];
-            pieceScore = (double)p.getPoint();
-            if (p.getColor() == 0)
-            {
-                whiteScore += pieceScore - 0.5 * (double)p.getIsUnderAttackByBlack()*pieceScore;
-            }
-            else if (p.getColor() == 1)
-            {
-                blackScore += pieceScore - 0.5 * (double)p.getIsUnderAttackByWhite()*pieceScore;
-            }
-        }
+        whiteScore = getScore(0);
+        blackScore = getScore(1);
+    }
+    else
+    {
+        whiteScore = getScore(1);
+        blackScore = getScore(0);
     }
     std::cout << "White score: " << whiteScore << std::endl;
     std::cout << "Black score: " << blackScore << std::endl;                   
+}
+
+double Board::getScore(int color)
+{
+    double score = 0;
+    double pieceScore = 0;
+    for (int i = 0; i < 64; ++i)
+    {
+        Piece& p = board[i / 8][i % 8];
+        pieceScore = (double)p.getPoint();
+        if (p.getColor() == color)
+        {
+            score += pieceScore - 0.5 * (double)p.getIsUnderAttack(color)*pieceScore;
+        }
+    }
+    return score;
 }
 
 std::ostream &operator<<(std::ostream &os, const Board &board)
@@ -1088,4 +1100,53 @@ std::istream& operator>>(std::istream& is, Board& b)
     }
     b.updateUnderAttack();
     return is;
+}
+
+//suggest best move for the player
+std::string Board::suggestMove(int color)
+{
+    int maxPoint = -1000;
+    std::string bestMove;
+    double allyP = getScore(color);
+    double opponentP = getScore(color + 1);
+    for (int i = 0; i < 8; ++i)
+    {
+        for (int j = 0; j < 8; ++j)
+        {
+            Piece tmp = board[i][j];
+            if (tmp.getColor() == color)
+            {
+                unsigned int size = tmp.getPossibleMovesSize();
+                for (unsigned int k = 0; k < size; ++k)
+                {
+                    std::string move = tmp.getPossibleMoves(k);
+                    Piece tmp2 = board[move[3] - '1'][move[2] - 'a'];
+                    movePiece(move[0]-'a', move[1]-'1', move[2] - 'a', move[3] - '1');
+                    updateUnderAttack();
+                    if (isCheck(color) == false)
+                    {
+                        allyP = getScore(color);
+                        opponentP = getScore(color + 1);
+                        if (move == "e4h1" || move == "e4f5")
+                        {
+                            std::cout << *this << std::endl;
+                            std::cout << "blackscore: " << (double)getScore(color) << std::endl;
+                            std::cout << "whitescore: " << (double)getScore(color+1) << std::endl;
+                            std::cout << "move: " << move << std::endl;
+                            std::cout << "maxPoint: " << maxPoint << std::endl;
+                            std::cout << "allyP - opp " << allyP-opponentP<< std::endl;
+
+                        }
+                        if (allyP - opponentP > maxPoint)
+                        {
+                            maxPoint = allyP - opponentP;
+                            bestMove = move;
+                        }
+                    }
+                    undoMove(tmp2, move[2] - 'a', move[3] - '1', move[0]-'a', move[1]-'1');
+                }
+            }
+        }
+    }
+    return bestMove;
 }
